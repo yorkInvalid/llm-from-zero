@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "label_origin": "教师人工选择问题、证据锚点和预期要点；不是模型自动生成的标准答案。",
+  "cases": [
+    {
+      "id": "q01",
+      "question": "提示词里使用分隔符有什么用？",
+      "evidence": [
+        {
+          "source": "2. 提示原则 Guidelines.md",
+          "quote": "将不同的指令、上下文、输入隔开，避免意外的混淆。"
+        }
+      ],
+      "expected": "区分输入内容，减少混淆；不要承诺可保证防止提示词注入。",
+      "note": "原资料有防注入的过强表述。自动证据覆盖只核对区分内容这一依据；事实正确仍需人工判断。",
+      "answerable": true
+    },
+    {
+      "id": "q02",
+      "question": "我想让 Python 方便地解析模型的回答，应该要求哪类输出？",
+      "evidence": [
+        {
+          "source": "2. 提示原则 Guidelines.md",
+          "quote": "这种输出非常适合在代码中进一步解析和处理。例如，您可以在 Python 中将其读入字典或列表中。"
+        }
+      ],
+      "expected": "使用结构化输出，例如 JSON，并指定字段；仅提出格式要求并不保证输出一定合法。",
+      "answerable": true
+    },
+    {
+      "id": "q03",
+      "question": "根据产品说明生成的营销文案太长，先怎样修改提示词？",
+      "evidence": [
+        {
+          "source": "3. 迭代优化 Iterative.md",
+          "quote": "在 Prompt 中添加长度限制"
+        }
+      ],
+      "expected": "明确长度要求，再观察结果；不要承诺每次严格符合字数。",
+      "answerable": true
+    },
+    {
+      "id": "q04",
+      "question": "我想从商品评论中只保留物流信息，而且让 Python 方便读取，提示词需要提出哪两类要求？",
+      "evidence": [
+        {
+          "source": "4. 文本概括 Summarizing.md",
+          "quote": "则可以要求 LLM 进行 **文本提取（Extract）** 而非概括( Summarize )"
+        },
+        {
+          "source": "2. 提示原则 Guidelines.md",
+          "quote": "这种输出非常适合在代码中进一步解析和处理。例如，您可以在 Python 中将其读入字典或列表中。"
+        }
+      ],
+      "expected": "提取指定方面的信息以排除其他内容；要求 JSON 等结构化格式方便解析。需要两处依据，不是只命中一个文件就够。",
+      "answerable": true
+    },
+    {
+      "id": "q05",
+      "question": "让模型把输入改写成步骤，但输入本身没有步骤，示例要求怎么回答？",
+      "evidence": [
+        {
+          "source": "2. 提示原则 Guidelines.md",
+          "quote": "不包含则回答“未提供步骤”。"
+        }
+      ],
+      "expected": "先检查条件，不包含步骤时明确回答未提供步骤。",
+      "answerable": true
+    },
+    {
+      "id": "q06",
+      "question": "商品评论摘要里，物流部门和商家分别关心什么？",
+      "evidence": [
+        {
+          "source": "4. 文本概括 Summarizing.md",
+          "quote": "物流部门可能更专注于运输的时效性，商家则更关注价格和商品质量"
+        }
+      ],
+      "expected": "物流关注运输时效，商家关注价格与商品质量。",
+      "answerable": true
+    },
+    {
+      "id": "q07",
+      "question": "这套资料作者的私人手机号是多少？",
+      "evidence": [],
+      "expected": "资料没有提供，不猜测私人手机号。",
+      "note": "无答案问题；不纳入证据覆盖率分母。",
+      "answerable": false
+    },
+    {
+      "id": "q08",
+      "question": "本资料规定我们公司下个月报销餐费的上限是多少元？",
+      "evidence": [],
+      "expected": "资料未说明该公司的报销政策，不编造金额。",
+      "note": "无答案问题；检索仍可能返回候选片段。",
+      "answerable": false
+    }
+  ]
+}

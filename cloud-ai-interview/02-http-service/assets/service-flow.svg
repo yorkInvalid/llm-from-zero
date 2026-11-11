@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="380" viewBox="0 0 1080 380" role="img" aria-label="客户端使用应用密钥调用HTTP服务，服务读取资料并使用另一把模型密钥调用模型商，响应沿原路返回">
+<rect width="1080" height="380" rx="16" fill="#f6f8fb"/>
+<g font-family="-apple-system, PingFang SC, sans-serif" fill="#25384a">
+<text x="30" y="40" font-size="22" font-weight="600">同一个问题，经过两次 HTTP 请求</text>
+<rect x="30" y="90" width="200" height="160" rx="12" fill="#e9f0f8" stroke="#a0b7d1"/>
+<text x="50" y="125" font-size="21" font-weight="600">客户端</text><text x="50" y="158" font-size="17">client.py / curl</text><text x="50" y="192" font-size="17">提供问题</text><text x="50" y="222" font-size="17">检查回答是否完成</text>
+<rect x="420" y="90" width="240" height="160" rx="12" fill="#e4f1ed" stroke="#88b7a7"/>
+<text x="440" y="125" font-size="21" font-weight="600">我们的 HTTP 服务</text><text x="440" y="158" font-size="17">FastAPI · 端口 8000</text><text x="440" y="192" font-size="17">验证身份和参数</text><text x="440" y="222" font-size="17">读取 DEV-01 团队规则</text>
+<rect x="850" y="90" width="200" height="160" rx="12" fill="#f0ecf7" stroke="#b8a8ce"/>
+<text x="870" y="125" font-size="21" font-weight="600">模型服务商</text><text x="870" y="158" font-size="15">DeepSeek / TokenHub</text><text x="870" y="192" font-size="17">接收消息并生成</text><text x="870" y="222" font-size="17">返回正文与用量</text>
+<g stroke="#718497" stroke-width="2" fill="none"><path d="M240 145H405l-10 -6m10 6l-10 6"/><path d="M670 145H835l-10 -6m10 6l-10 6"/><path d="M405 218H240l10 -6m-10 6l10 6"/><path d="M835 218H670l10 -6m-10 6l10 6"/></g>
+<text x="246" y="112" font-size="16">APP_API_KEY</text><text x="246" y="135" font-size="15">应用访问凭据</text><text x="679" y="112" font-size="16">LLM_API_KEY</text><text x="679" y="135" font-size="15">模型商访问凭据</text>
+<text x="249" y="205" font-size="15">JSON 或 SSE 事件</text><text x="684" y="205" font-size="15">模型响应或错误</text>
+<text x="30" y="297" font-size="18">观察顺序：接收请求 → 验证 → 组织材料 → 等待模型 → 返回结果</text>
+<text x="30" y="336" font-size="17" fill="#607284">请求编号贯穿我们这段处理；本课的服务与客户端都在 Mac 上，第三课再部署服务。</text>
+</g></svg>

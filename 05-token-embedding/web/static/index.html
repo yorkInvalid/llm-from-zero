@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>看看这段文字被切成多少 token</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">课程 5 · 同一份本地分词器</p>
+      <h1>打一段文字，马上看见它被切成多少 token</h1>
+      <p class="lead">这里数出来的是 Qwen 分词器的结果，不是任何厂商的账单。价格和整份合同的估算仍在笔记本里算。</p>
+    </header>
+
+    <section class="card" id="live">
+      <label for="source">任意一段材料</label>
+      <textarea id="source" rows="4" maxlength="4000" placeholder="贴一段合同、一段 JSON，或一句带换行的纪要"></textarea>
+      <p id="live-stats" class="muted">打一段文字，切分马上出现。</p>
+      <div id="live-tokens" class="toks"></div>
+      <p id="live-error" class="miss"></p>
+      <p class="muted">␣ 是空格，↵ 是换行。悬停一块可以看到它的编号。同一个 token，颜色相同。标成「周 · 2/3」的，是一个字被拆成了几段字节，单独拿出来还不是完整的字。</p>
+    </section>
+
+    <section class="card" id="game">
+      <div class="head">
+        <h2>猜 token 数</h2>
+        <p id="game-score" class="muted"></p>
+      </div>
+      <p class="muted">每轮 5 题，从合同、客服、手册、JSON、代码这些材料里抽。误差在 1 个或 10% 以内算命中，3 分；30% 以内算接近，1 分。</p>
+      <p id="game-title"></p>
+      <p id="game-text" class="question"></p>
+      <p id="game-hint" class="muted"></p>
+      <div id="game-tokens" class="toks"></div>
+      <div id="game-ruler" class="ruler" hidden></div>
+      <p id="game-result"></p>
+      <form id="guess-form">
+        <input id="guess" inputmode="numeric" autocomplete="off" placeholder="你猜几个 token？">
+        <button type="submit">揭晓</button>
+        <button type="button" id="next" hidden>下一题</button>
+        <button type="button" id="again" hidden>再来一轮（换题）</button>
+      </form>
+      <p id="game-error" class="miss"></p>
+      <div id="summary" hidden></div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

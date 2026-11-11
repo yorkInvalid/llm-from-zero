@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="290" viewBox="0 0 1000 290" role="img" aria-label="本机发送材料和问题到模型服务，响应返回后分别检查状态、完成情况和事实依据">
+ <rect width="1000" height="290" rx="16" fill="#f5f8fa"/>
+ <g font-family="-apple-system, PingFang SC, sans-serif" fill="#263747">
+  <text x="30" y="38" font-size="20" font-weight="600">这一课只走通一条请求</text>
+  <rect x="30" y="65" width="220" height="110" rx="10" fill="#e5f0f2" stroke="#8ab5bd"/>
+  <text x="50" y="97" font-size="19" font-weight="600">你的 Mac / Notebook</text>
+  <text x="50" y="125" font-size="16">组织材料与问题</text><text x="50" y="150" font-size="16">密钥只用于请求认证</text>
+  <rect x="390" y="65" width="220" height="110" rx="10" fill="#edf0fb" stroke="#a4b0d6"/>
+  <text x="410" y="97" font-size="19" font-weight="600">模型服务商</text><text x="410" y="125" font-size="16">接收本次 messages</text><text x="410" y="150" font-size="16">在服务商侧运行模型</text>
+  <rect x="750" y="65" width="220" height="110" rx="10" fill="#edf3e9" stroke="#abc49a"/>
+  <text x="770" y="97" font-size="19" font-weight="600">回到本机检查</text><text x="770" y="125" font-size="16">状态、完成原因、用量</text><text x="770" y="150" font-size="16">答案与原材料逐项核对</text>
+  <g stroke="#6d8294" stroke-width="2" fill="none"><path d="M255 118H380l-9 -6m9 6l-9 6"/><path d="M615 118H740l-9 -6m9 6l-9 6"/></g>
+  <text x="268" y="99" font-size="15">HTTPS 请求</text><text x="633" y="99" font-size="15">JSON 响应</text>
+  <text x="30" y="216" font-size="17">三件事分别判断：请求返回了吗？文字正常生成完了吗？说的内容有依据吗？</text>
+  <text x="30" y="251" font-size="16" fill="#607284">下一课才添加我们自己的 HTTP 服务；第三课把这个服务搬到云主机。</text>
+ </g>
+</svg>

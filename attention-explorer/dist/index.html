@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="跟随一个输入，在同一张交互画布上理解 Self-attention 的计算与原因。"><title>从三个 token 到下一个 token</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=STIX+Two+Text:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="styles.css"></head>
+<body>
+<header class="top"><h1>从三个 token 到下一个 token</h1><div class="tools"><button id="fit">查看全图</button><button id="focus">回到当前步骤</button><button id="minus" aria-label="缩小">−</button><output id="zoom">100%</output><button id="plus" aria-label="放大">＋</button><button id="record-toggle" aria-pressed="false">按稿演示</button><button id="reset">重新开始</button></div></header>
+<main>
+<div class="task-flow" aria-label="完整语言模型任务"><span>输入 x₁、x₂、x₃</span><span aria-hidden="true">→</span><strong>Attention 汇总上下文（当前学习）</strong><span aria-hidden="true">→</span><span>后续网络</span><span aria-hidden="true">→</span><span>词表概率，生成下一个 token</span></div>
+<div id="load" role="status">正在读取课程模型的计算数据…</div>
+<div id="viewport" tabindex="0" aria-label="计算画布。拖动或使用方向键平移，使用加减按钮缩放。"><div id="plane"></div></div>
+<noscript>请启用 JavaScript 查看可交互的计算画布。学习顺序为上下文、查询与键、点积、比较所有位置、归一化、加权汇总。</noscript>
+</main>
+<footer>
+<section id="recording" hidden aria-label="录屏分镜控制">
+<div class="record-controls"><button id="cue-prev">上一镜</button><label>当前镜头<select id="cue-select"></select></label><button id="cue-next" class="primary">下一镜</button></div>
+<p id="cue-time" role="status"></p><p id="cue-pointer"></p>
+<details><summary>查看本镜配音</summary><p id="cue-speech"></p></details>
+</section><div class="progress"><button id="prev">上一步</button><div id="status" role="status"></div><button id="next" class="primary">下一步</button></div><nav id="steps" aria-label="教学步骤"></nav><div class="footer-note"><span>点击向量查看真实数值。拖动空白处移动，方向键平移，滚轮缩放。</span><button id="about-toggle" aria-expanded="false">数据与学习约定</button></div><div id="about" hidden>输入是随机种子 42 生成的三个 10 维向量，每个 token 占一列。使用当前 Python 模型第一个头的初始化参数，Q、K、V 各为 5 维。本页采用因果注意力，计算该头在最后位置的 b₃，位置编号从 1 开始。显示保留四位小数，运算使用完整精度。字体采用免费的 Noto Sans SC、STIX Two Text、IBM Plex Mono，加载失败时回退到本机字体。<a href="https://speech.ee.ntu.edu.tw/~hylee/ml/ml2021-course-data/self_v7.pdf" target="_blank" rel="noreferrer">李宏毅老师的讲义</a></div></footer>
+<script type="module" src="app.js"></script>
+</body></html>

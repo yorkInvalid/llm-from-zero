@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="430" viewBox="0 0 1100 430" role="img" aria-label="同叫 embedding 的两样东西">
+ <title>同叫 embedding 的两样东西</title><desc>上方是模型内部的输入表：每个 token 一行。下方是 RAG 用的文本向量模型：整段文字读完后输出一个向量。</desc>
+ <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#f6f8fa"/></linearGradient><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#1a7f37"/></marker></defs>
+ <rect x="1" y="1" width="1098" height="428" rx="20" fill="url(#bg)" stroke="#d0d7de"/>
+ <g font-family="system-ui, PingFang SC, Microsoft YaHei, sans-serif">
+ <text x="32" y="72" fill="#1f2328" font-size="26" font-weight="650">同叫 embedding，是两样东西</text>
+ <text x="32" y="138" fill="#8250df" font-size="17" font-weight="600">① 模型内部的输入表</text>
+ <rect x="32" y="152" width="170" height="70" rx="12" fill="#ffffff" stroke="#1a7f37" stroke-opacity=".65"/><text x="48" y="183" fill="#1a7f37" font-size="17">“猫追狗”</text><text x="48" y="208" fill="#24292f" font-size="13">3 个 token ID</text>
+ <path d="M205 187L232 187" stroke="#1a7f37" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+ <rect x="236" y="152" width="200" height="70" rx="12" fill="#ffffff" stroke="#8250df" stroke-opacity=".65"/><text x="252" y="183" fill="#8250df" font-size="17">按编号取行</text><text x="252" y="208" fill="#24292f" font-size="13">表 E[V, D]，不看上下文</text>
+ <path d="M439 187L466 187" stroke="#1a7f37" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+ <rect x="470" y="152" width="200" height="70" rx="12" fill="#ffffff" stroke="#1a7f37" stroke-opacity=".65"/><text x="486" y="183" fill="#1a7f37" font-size="17">每个 token 一行</text><text x="486" y="208" fill="#24292f" font-size="13">[3, D]，交给后续网络</text>
+ <text x="700" y="180" fill="#24292f" font-size="14">模型自己用，调用 API 时看不到</text><text x="700" y="205" fill="#57606a" font-size="13">同一个 ID 永远取到同一行</text>
+ <text x="32" y="282" fill="#bc4c00" font-size="17" font-weight="600">② RAG 用的文本向量模型</text>
+ <rect x="32" y="296" width="170" height="70" rx="12" fill="#ffffff" stroke="#1a7f37" stroke-opacity=".65"/><text x="48" y="327" fill="#1a7f37" font-size="17">一段文档</text><text x="48" y="352" fill="#24292f" font-size="13">或用户的问题</text>
+ <path d="M205 331L232 331" stroke="#1a7f37" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+ <rect x="236" y="296" width="200" height="70" rx="12" fill="#ffffff" stroke="#bc4c00" stroke-opacity=".7"/><text x="252" y="327" fill="#bc4c00" font-size="17">整个编码模型读完</text><text x="252" y="352" fill="#24292f" font-size="13">内部也先查 ① 这样的表</text>
+ <path d="M439 331L466 331" stroke="#1a7f37" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+ <rect x="470" y="296" width="200" height="70" rx="12" fill="#ffffff" stroke="#1a7f37" stroke-opacity=".65"/><text x="486" y="327" fill="#1a7f37" font-size="17">整段一个向量</text><text x="486" y="352" fill="#24292f" font-size="13">长度固定，与字数无关</text>
+ <text x="700" y="324" fill="#24292f" font-size="14">专门训练成：意思相近 → 向量相近</text><text x="700" y="349" fill="#57606a" font-size="13">存进向量库，按相似度找回材料</text>
+ <text x="32" y="405" fill="#57606a" font-size="14">本课亲手看 ①；② 在第 12–15 课真实调用。面试里说“embedding 选型”，通常指 ②。</text>
+ </g></svg>

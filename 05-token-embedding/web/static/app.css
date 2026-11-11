@@ -1,0 +1,77 @@
+:root {
+  color: #1f2328;
+  background: #f6f8fa;
+  font: 16px/1.6 system-ui, -apple-system, "PingFang SC", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+h1 { font-size: 28px; line-height: 1.35; margin: 0 0 8px; }
+h2 { font-size: 20px; margin: 0; }
+.eyebrow { margin: 0; color: #57606a; font-size: 13px; }
+.lead { color: #424a53; }
+.card {
+  background: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+label { display: block; font-weight: 650; margin-bottom: 6px; }
+textarea, input {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+textarea { resize: vertical; }
+.muted { color: #57606a; }
+.miss { color: #cf222e; min-height: 1.2em; }
+.hit { color: #1a7f37; }
+.near { color: #9a6700; }
+.big { font-size: 22px; font-weight: 700; }
+.head, form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+form input { width: 220px; }
+button {
+  font: inherit;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: #1f2328;
+  color: #fff;
+  cursor: pointer;
+}
+button[hidden], .ruler[hidden], #summary[hidden] { display: none; }
+.question {
+  font-size: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.toks { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; min-height: 12px; }
+.tok {
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: pre;
+  font-size: 16px;
+}
+.tok.in { animation: rise .28s ease-out both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.ruler { position: relative; height: 78px; margin: 8px 36px 4px; }
+.ruler .line { position: absolute; left: 0; right: 0; top: 36px; height: 2px; background: #d0d7de; }
+.gap { position: absolute; top: 34px; height: 6px; border-radius: 3px; opacity: .55; }
+.mark { position: absolute; transform: translateX(-50%); font-size: 12px; white-space: nowrap; text-align: center; }
+.mark.up { bottom: 42px; }
+.mark.down { top: 42px; }
+.mark i { display: block; width: 3px; height: 14px; margin: 0 auto; border-radius: 2px; background: currentColor; }
+.chart { display: grid; grid-template-columns: 9em 1fr 3em; gap: 8px 12px; align-items: center; margin-top: 8px; }
+.track { position: relative; height: 14px; border-radius: 7px; background: #eef1f4; }
+.bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; opacity: .8; }
+.tick { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: #1f2328; }
+@media (prefers-reduced-motion: reduce) { .tok.in { animation: none; } }

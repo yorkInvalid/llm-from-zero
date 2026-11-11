@@ -1,0 +1,7 @@
+.venv/
+.env
+!.env.example
+!.env.lab.example
+__pycache__/
+.pytest_cache/
+local-results/
