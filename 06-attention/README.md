@@ -1,97 +1,100 @@
-# 多头注意力学习实验
+# 多层 Encoder 学习实验
 
-当前实现 Post-LN Encoder Block 的主体结构：多头注意力 → Add & Norm → FFN → Add & Norm，并支持位置编码、训练与可视化。暂未加入 dropout、padding mask、batch 输入和多层堆叠。
-所有输入均按列排列 token：输入和输出为 `(10, 3)`，注意力权重为 `(2, 3, 3)`，后两维分别是 key、query。
+当前实现多层 Post-LN Encoder，每层为：多头注意力 → Add & Norm → FFN → Add & Norm。暂未加入 dropout、padding mask 和 batch 输入。
+
+所有 token 按列排列。默认 3 层，每层 2 个头、特征维度 10、FFN 中间维度 40。输入输出均为 `(10, 3)`；单层 1290 个参数，3 层共 3870 个参数，各层参数独立。
 
 ## 阅读顺序
 
-1. `attention.py`：`MultiHeadAttention.forward()` 中保留逐头计算 Q、K、V、A、A′、B 的流程。`ParameterList` 注册各头参数，优化器通过 `model.parameters()` 获取全部参数。
-2. `position_encoding.py`：固定 sin/cos 编码与 RoPE 旋转。每头 5 维时，RoPE 旋转前 4 维，最后 1 维保持不变。
-3. `attention_sublayer.py`：封装 `Z = LayerNorm(X + Attention(X))`，采用 Post-LN；对每列 token 的特征归一化。
-4. `feed_forward.py`：两层 FC 和 ReLU，默认 `10 → 40 → 10`，各 token 独立计算并共享参数。
-5. `encoder_layer.py`：组合 AttentionSublayer、FFN、第二次残差和独立的 LayerNorm。
-6. `train.py`：生成固定输入、设置平均值目标、选择编码并执行训练。sin/cos 在进入模型前加一次，RoPE 在注意力内部旋转 Q、K。训练调用 EncoderLayer，loss 使用第二次归一化后的 output。
-7. `visualization.py`：`plot_training(loss_history, attention_history, output_dir, name)` 生成曲线和热力图，并返回图片路径。
+1. `attention.py`：逐头计算 Q、K、V、分数、softmax 和加权求和，再拼接并通过 W_o 投影。权重的行是 key，列是 query，每列之和为 1。
+2. `position_encoding.py`：固定 sin/cos 编码和 RoPE。每头 5 维时，前 4 维参与 RoPE，最后一维不变。
+3. `attention_sublayer.py`：`Z = LayerNorm1(X + Attention(X))`。LayerNorm 沿每个 token 的特征归一化；代码通过转置适配 PyTorch 最后一维的接口。
+4. `feed_forward.py`：`Linear(10, 40) → ReLU → Linear(40, 10)`，所有 token 共享参数，但独立计算。
+5. `encoder_layer.py`：`output = LayerNorm2(Z + FFN(Z))`。第二次残差加回 Z；两个 LayerNorm 的参数独立。
+6. `encoder.py`：用 `nn.ModuleList` 注册多个独立创建的 EncoderLayer，依次传递上一层的输出。返回最终输出和逐层注意力权重列表。
+7. `train.py`：固定输入求平均实验，使用最终 Encoder 输出计算 MSE，由 Adam 更新全部层的参数。
+8. `visualization.py`：`plot_encoder_training()` 按层选择记录，复用原有的 `plot_training()`，每层生成曲线和热力图。
 
-导入这些文件不会自动训练或画图。训练入口已从 `attention.py` 移到 `train.py`。
+导入模块不会自动训练或绘图。sin/cos 只在进入第一层前加一次；RoPE 在每层 Attention 中旋转该层的 Q、K。
 
 ## 运行
 
 在项目根目录执行：
 
 ```bash
-.venv/bin/python 06-attention/train.py --position-encoding sinusoidal
-.venv/bin/python 06-attention/train.py --position-encoding rope
-.venv/bin/python 06-attention/train.py --position-encoding none
+.venv/bin/python 06-attention/train.py --position-encoding sinusoidal --num-layers 3
+.venv/bin/python 06-attention/train.py --position-encoding rope --num-layers 3
+.venv/bin/python 06-attention/train.py --position-encoding none --num-layers 1
 ```
 
-默认使用 `sinusoidal`。图片仍保存在本目录的 `artifacts/`，文件名带编码模式，便于对照。
+默认 sinusoidal、3 层、300 次参数更新。层数必须为正整数。图片保存到 `artifacts/`，文件名包含编码模式、总层数和当前层号，例如 `attention-training-rope-3layers-layer1.png`，避免覆盖单层或其他层的结果。
 
-训练与绘图分开调用：
+在本目录下也可分开调用训练和绘图：
 
 ```python
 from train import train
-from visualization import plot_training
+from visualization import plot_encoder_training
 
-model, losses, weights = train("rope")
-plot_training(losses, weights, "artifacts", name="rope")
+model, losses, history = train("rope", num_steps=300, num_layers=3)
+paths = plot_encoder_training(losses, history, "artifacts", name="rope")
+
+# X 已准备好；sin/cos 模式需要先在模型外加位置编码。
+output, layer_weights = model(X)
+# layer_weights[0]：第一层权重，形状 (head, key, query)
 ```
 
-上面的导入示例在本目录下使用。`train()` 默认更新 300 次，记录初始状态和每次更新后的状态，共 301 条。
+`history` 包含初始状态和每次更新后的状态，共 301 条；每条是已 detach 的 `(layer, head, key, query)` 张量，默认 `(3, 2, 3, 3)`。全部记录堆叠后为 `(301, 3, 2, 3, 3)`。即使只配置一层，记录也保留 layer 维度。`plot_training()` 仍接受不含 layer 维度的单层记录，可使用 `[step[0] for step in history]` 取出第一层。
 
-求平均目标不依赖位置；本实验仅在一组固定输入上训练，不用于比较位置编码优劣或证明对新输入的泛化能力。
+原有 `MultiHeadAttention`、`AttentionSublayer` 和 `EncoderLayer` 仍可单独使用。`forward_with_residual(attention, X)` 在 `attention_sublayer.py` 中，train.py 保留导入兼容；只应传入原始注意力模块，避免重复添加残差。
 
-## 模型结构与测试
-
-`MultiHeadAttention` 仍只返回注意力分支 B；`train()` 返回的 model 现在是 `EncoderLayer`，包含注意力、FFN、两次残差和两个独立的 LayerNorm。需要最终输出时直接调用：
-
-```python
-output, attention_weights = model(X)
-```
-
-注意力子层内部计算为：
-
-```python
-B, weights = self.attention(X)
-Y = X + B
-Z = self.norm(Y.T).T
-```
-
-X、Y、Z 均为 `(10, 3)`。转置是为了让 `nn.LayerNorm(10)` 沿每个 token 的 10 个特征归一化，而不是沿 token 维度。LayerNorm 在构造函数中创建，10 个 gamma 和 10 个 beta 在 token 间共享，注意力子层参数量从 400 增至 420。仿射变换后的输出不保证均值为 0、方差为 1。
-
-EncoderLayer 再将 Z 交给 FFN，然后执行第二次 Add & Norm：
-
-```python
-Z, weights = self.attention_sublayer(X)
-F = self.ffn(Z)
-Y = Z + F
-output = self.norm2(Y.T).T
-```
-
-FFN 的形状变化是 `(10, 3) → 转置 (3, 10) → FC (3, 40) → ReLU → FC (3, 10) → 转置 (10, 3)`。两层 FC 都有 bias，共新增 850 个参数，第二个 LayerNorm 再增加 20 个参数，模型总计 1290 个参数；这些参数通过子模块注册，由 `model.parameters()` 一起交给 Adam。
-
-第二次残差加回的是 FFN 的输入 Z，不是原始 X。两个 LayerNorm 各自拥有独立的 gamma/beta，最终输出形状仍为 `(10, 3)`。
-
-sin/cos 模式下加回的是包含位置编码的 X，目标仍是原始输入 I 的平均值。`forward_with_residual(attention, X)` 已移至 `attention_sublayer.py`（train.py 保留导入兼容），仅用于原始注意力模块，不应把完整子层传给它重复加残差。
-
-在项目根目录运行（使用标准库 unittest，无需安装测试框架）：
+## 测试与实验边界
 
 ```bash
 .venv/bin/python -m unittest discover -s 06-attention/tests -v
 ```
 
-`tests/test_residual.py` 覆盖：
+- `test_residual.py`：残差手算、恒等路径、梯度；通过一层 Encoder 对照手算的一步 Adam 更新；三种编码下默认三层训练 300 步，检查 loss 至少下降 99%、301 条记录及每层注意力归一化。
+- `test_layernorm.py`：逐 token 公式、仿射参数、常量输入与梯度。
+- `test_feed_forward.py`：FC/ReLU 手算、token 独立性、参数共享与更新。
+- `test_encoder_layer.py`：第二次残差加回 Z、两个 LayerNorm 独立及梯度。
+- `test_encoder.py`：层数校验、独立参数与注册、手动逐层计算对照、不同序列长度、所有层梯度和更新、最终记录与模型输出对照、逐层绘图分发。
 
-- 手算结果：固定均匀注意力、恒等 V 投影和两倍 W_o，检查残差加在输出投影之后，且不修改输入或注意力权重。
-- 恒等路径：将 W_o 置零，检查 Y = X，以及 Y.sum() 对输入的梯度为全 1。
-- 梯度传播：检查输入梯度等于恒等路径与注意力路径梯度之和，所有注意力参数获得有限、非零梯度。
-- 训练集成：对三种编码独立计算一次 Adam 更新，对照实际 train() 的 loss、参数及注意力记录，验证 loss 使用完整 Encoder 输出，并通过手算归一化、矩阵乘法和 ReLU 独立对照。
-- 收敛回归：三种编码训练 300 步，检查最终 MSE 比初始值降低至少 99%、301 条记录、注意力形状与归一化。不要求每一步 loss 单调下降，也不证明泛化。
+目标始终是原始输入 I 的平均值。求平均不依赖顺序，本实验只拟合一组固定输入，不能比较位置编码优劣，也不能证明泛化能力。多层模型也不保证比单层更适合这个简单任务。
 
-`tests/test_layernorm.py` 另外检查逐 token 归一化公式、非默认 gamma/beta、不同序列长度、常量 token 的数值稳定性，以及注意力和 LayerNorm 参数都能获得梯度并更新。
+artifacts 中不含层号的图片是早期单层实验记录；含层数和层号的图片对应多层训练。
 
-`tests/test_feed_forward.py` 检查固定权重与偏置下的手算结果、ReLU、不同输入形状、token 独立性与参数共享、Encoder 的组合顺序与注意力权重，以及注册的参数能获得梯度并更新。
+## 可训练 Token Embedding 实验
 
-`tests/test_encoder_layer.py` 检查第二个 LayerNorm 参数独立、FFN 归零时第二次残差保留 Z、该路径的梯度，以及不同形状和常量输入的数值稳定性。
+新增 `token_encoder.py`：
 
-artifacts 中带 none/sinusoidal/rope 后缀的六张图片已按当前 Encoder 重新生成；不带后缀的两张图片是早期实验记录。
+- `TokenEncoder` 包含随机初始化的 `nn.Embedding`、位置编码和多层 Encoder。输入是非空的一维整数 token ID；输出仍为 `(d_model, n)`，同时返回逐层注意力。
+- 每次 forward 都重新查表：`X = self.embedding(token_ids).T`。Embedding 在构造时初始化一次，不能每步重建或将查表结果 detach 后缓存。
+- sin/cos 在第一层之前加一次；RoPE 在每层 Q/K 内部生效；none 不注入位置信息。这些位置编码没有可训练参数。这里沿用现有直接相加的教学约定，没有添加原论文的 embedding 缩放。
+- `TokenClassifier` 组合 TokenEncoder 和逐 token 线性分类头，返回 `(n, num_classes)` logits。交叉熵直接接收 logits，无需提前 softmax。
+
+新增 `train_tokens.py`，与原 `train.py` 求平均实验独立：
+
+```bash
+.venv/bin/python 06-attention/train_tokens.py
+.venv/bin/python 06-attention/train_tokens.py --position-encoding rope --num-layers 3 --num-steps 200
+.venv/bin/python 06-attention/train_tokens.py --position-encoding none --num-steps 1
+```
+
+教学词表为 `猫、吃、鱼、狗、喝、水`，ID 为 0–5，人工固定标签为 `动物、动作、食物/饮品`。词表映射不变，Embedding 表中的 60 个数会学习。默认模型包括 3870 个 Encoder 参数、60 个 Embedding 参数、33 个分类头参数，共 3963 个参数。这里直接输入已分好的 token，没有接入通用文本 Tokenizer。
+
+参数更新在训练循环中明确展示：
+
+```python
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+logits, _ = model(token_ids)
+loss = criterion(logits, labels)
+optimizer.zero_grad()
+loss.backward()   # 计算 embedding.weight.grad，权重本身尚未改变
+optimizer.step()  # 同时更新 Embedding、Encoder 和分类头
+```
+
+程序打印固定 ID、猫的初始/最终向量、第一次反向传播的 Embedding 梯度量、第一次 Adam 更新的变化量及最终预测。`train_tokens()` 返回 `(model, losses, snapshots)`；snapshots 保存更新前、第一次 backward 后、第一次 step 后和最终的表，以及第一次梯度（num_steps=0 时没有首次更新的快照）。所有快照都 detach 并 clone，不影响训练。
+
+`tests/test_token_embedding.py` 验证查表数值与重复 ID、三种位置编码的注入位置、整数 ID 和范围、参数注册及梯度、backward 与 step 的区别、未使用行在首次无 weight decay 的 Adam 更新中不变、零步不更新，以及三种模式能拟合固定标签。
+
+这个任务只用于展示 Embedding 与后续网络一起训练。标签可由 token 身份直接确定，且只使用一个固定序列，没有独立验证集；准确率 100% 不代表理解语言、使用了上下文或具有泛化能力。后续再接入真实 Tokenizer、batch/padding mask 和依赖上下文的任务。

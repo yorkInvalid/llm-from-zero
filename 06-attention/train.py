@@ -6,11 +6,11 @@ from pathlib import Path
 import torch
 
 from attention_sublayer import forward_with_residual  # 保留旧教学示例的导入兼容
-from encoder_layer import EncoderLayer
+from encoder import Encoder
 from position_encoding import sinusoidal_encoding
 
 
-def train(position_encoding="sinusoidal", num_steps=300):
+def train(position_encoding="sinusoidal", num_steps=300, num_layers=3):
     """在一组固定输入上学习求平均；返回模型及训练记录，绘图由调用者决定。"""
     if position_encoding not in {"none", "sinusoidal", "rope"}:
         raise ValueError("未知的位置编码模式")
@@ -27,13 +27,13 @@ def train(position_encoding="sinusoidal", num_steps=300):
     # 目标始终来自原始输入；sin/cos 编码只加到模型输入上。
     target = I.mean(dim=1, keepdim=True).repeat(1, n)
     X = I + sinusoidal_encoding(I) if position_encoding == "sinusoidal" else I
-    model = EncoderLayer(d_in, num_heads, d_k, d_v,
-                               use_rope=position_encoding == "rope")
+    model = Encoder(num_layers=num_layers, d_model=d_in, num_heads=num_heads,
+                    d_k=d_k, d_v=d_v, use_rope=position_encoding == "rope")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_history = []
     attention_history = []
 
-    print(f"位置编码模式：{position_encoding}")
+    print(f"位置编码模式：{position_encoding}，Encoder 层数：{num_layers}")
     if position_encoding == "rope":
         print(f"每头 {d_k} 维，其中 {d_k // 2 * 2} 维参与 RoPE 旋转")
 
@@ -42,7 +42,7 @@ def train(position_encoding="sinusoidal", num_steps=300):
         output, all_attention = model(X)
         loss = torch.mean((output - target) ** 2)
         loss_history.append(loss.item())
-        attention_history.append(all_attention.detach().clone())
+        attention_history.append(torch.stack(all_attention).detach().clone())
 
         if step % 50 == 0:
             print(f"step={step:3d}, loss={loss.item():.10f}")
@@ -53,9 +53,9 @@ def train(position_encoding="sinusoidal", num_steps=300):
         loss.backward()
         optimizer.step()
 
-    print("\n训练后的各头注意力权重（行：key；列：query）：")
-    print(all_attention.detach())
-    print("各头每列权重之和：", all_attention.detach().sum(dim=1))
+    print("\n训练后的注意力权重（layer, head, key, query）：")
+    print(attention_history[-1])
+    print("各层各头每列权重之和：", attention_history[-1].sum(dim=2))
     print("Encoder 输出的形状：", output.shape)
     return model, loss_history, attention_history
 
@@ -66,18 +66,21 @@ def main():
         "--position-encoding", choices=["none", "sinusoidal", "rope"],
         default="sinusoidal", help="默认 sinusoidal；none 用于无位置编码对照",
     )
+    parser.add_argument("--num-layers", type=int, default=3, help="Encoder 层数，默认 3")
     args = parser.parse_args()
-    _, losses, weights = train(args.position_encoding)
+    if args.num_layers < 1:
+        parser.error("--num-layers 必须至少为 1")
+    _, losses, weights = train(args.position_encoding, num_layers=args.num_layers)
 
     # 绘图单独调用；导入或使用模型时不需要加载 matplotlib。
-    from visualization import plot_training
+    from visualization import plot_encoder_training
 
     output_dir = Path(__file__).resolve().parent / "artifacts"
-    curves_path, heatmap_path = plot_training(
-        losses, weights, output_dir, name=args.position_encoding,
-    )
-    print(f"\n权重变化曲线：{curves_path}")
-    print(f"注意力热力图：{heatmap_path}")
+    paths = plot_encoder_training(losses, weights, output_dir, name=args.position_encoding)
+    for layer_index, (curves_path, heatmap_path) in enumerate(paths, start=1):
+        print(f"\n第 {layer_index} 层权重变化曲线：{curves_path}")
+        print(f"第 {layer_index} 层注意力热力图：{heatmap_path}")
+
 
 
 # 求平均不依赖顺序；本实验尚未验证泛化，也不能比较位置编码优劣。

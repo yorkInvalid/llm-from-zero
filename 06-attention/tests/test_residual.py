@@ -88,13 +88,13 @@ class ResidualTests(unittest.TestCase):
                     F_after, weights_after = reference(X)
                     expected_after = ((F_after - target) ** 2).mean().item()
                 with contextlib.redirect_stdout(io.StringIO()):
-                    actual, losses, weights = train(mode, num_steps=1)
+                    actual, losses, weights = train(mode, num_steps=1, num_layers=1)
                 self.assertEqual(len(losses), 2)
                 self.assertEqual(len(weights), 2)
                 self.assertAlmostEqual(losses[0], expected_loss.item(), places=6)
                 self.assertAlmostEqual(losses[1], expected_after, places=6)
-                torch.testing.assert_close(weights[-1], weights_after)
-                for name, value in actual.state_dict().items():
+                torch.testing.assert_close(weights[-1][0], weights_after)
+                for name, value in actual.layers[0].state_dict().items():
                     torch.testing.assert_close(value, reference.state_dict()[name])
 
     def test_all_modes_learn_fixed_target(self):
@@ -108,8 +108,8 @@ class ResidualTests(unittest.TestCase):
                 # 固定输入的学习回归：要求 300 步至少降低 99%。
                 self.assertLess(losses[-1], losses[0] * 0.01)
                 history = torch.stack(weights)
-                self.assertEqual(tuple(history.shape), (301, 2, 3, 3))
-                torch.testing.assert_close(history.sum(dim=2), torch.ones(301, 2, 3))
+                self.assertEqual(tuple(history.shape), (301, 3, 2, 3, 3))
+                torch.testing.assert_close(history.sum(dim=3), torch.ones(301, 3, 2, 3))
                 self.assertTrue(((history >= 0) & (history <= 1)).all())
 
 

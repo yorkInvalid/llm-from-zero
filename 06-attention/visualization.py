@@ -89,3 +89,16 @@ def plot_training(loss_history, attention_history, output_dir, name="rope"):
     plt.close(fig)
 
     return curves_path, heatmap_path
+
+
+def plot_encoder_training(loss_history, attention_history, output_dir, name="rope"):
+    """记录形状为 (layer, head, key, query)，每层复用原有绘图函数。"""
+    num_layers = attention_history[0].shape[0]
+    paths = []
+    for layer_index in range(num_layers):
+        layer_history = [weights[layer_index] for weights in attention_history]
+        paths.append(plot_training(
+            loss_history, layer_history, output_dir,
+            name=f"{name}-{num_layers}layers-layer{layer_index + 1}",
+        ))
+    return paths
