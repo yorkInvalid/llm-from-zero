@@ -9,7 +9,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from attention import MultiHeadAttention
-from attention_sublayer import AttentionSublayer
+from encoder_layer import EncoderLayer
 from position_encoding import sinusoidal_encoding
 from train import forward_with_residual, train
 
@@ -58,7 +58,7 @@ class ResidualTests(unittest.TestCase):
                 self.assertTrue(torch.isfinite(parameter.grad).all())
                 self.assertGreater(parameter.grad.abs().sum().item(), 0)
 
-    def test_training_uses_post_norm_and_updates_parameters(self):
+    def test_training_uses_encoder_output_and_updates_parameters(self):
         # 独立重建初始化及一步 Adam，核对实际训练入口，避免只测试加法函数。
         for mode in ('none', 'sinusoidal', 'rope'):
             with self.subTest(mode=mode):
@@ -66,20 +66,27 @@ class ResidualTests(unittest.TestCase):
                 I = torch.randn(10, 3)
                 X = I + sinusoidal_encoding(I) if mode == 'sinusoidal' else I
                 target = I.mean(dim=1, keepdim=True).repeat(1, 3)
-                reference = AttentionSublayer(use_rope=mode == 'rope')
+                reference = EncoderLayer(use_rope=mode == 'rope')
                 optimizer = torch.optim.Adam(reference.parameters(), lr=0.01)
-                B, _ = reference.attention(X)
+                sublayer = reference.attention_sublayer
+                B, _ = sublayer.attention(X)
                 Y = X + B
                 mean = Y.mean(dim=0, keepdim=True)
                 var = Y.var(dim=0, unbiased=False, keepdim=True)
-                Z = (Y - mean) / torch.sqrt(var + reference.norm.eps)
-                Z = Z * reference.norm.weight[:, None] + reference.norm.bias[:, None]
-                expected_loss = ((Z - target) ** 2).mean()
+                Z = (Y - mean) / torch.sqrt(var + sublayer.norm.eps)
+                Z = Z * sublayer.norm.weight[:, None] + sublayer.norm.bias[:, None]
+                H = reference.ffn.fc1.weight @ Z + reference.ffn.fc1.bias[:, None]
+                F = reference.ffn.fc2.weight @ H.clamp_min(0) + reference.ffn.fc2.bias[:, None]
+                Y2 = Z + F
+                centered = Y2 - Y2.mean(dim=0, keepdim=True)
+                output = centered / torch.sqrt(Y2.var(dim=0, unbiased=False, keepdim=True) + reference.norm2.eps)
+                output = output * reference.norm2.weight[:, None] + reference.norm2.bias[:, None]
+                expected_loss = ((output - target) ** 2).mean()
                 expected_loss.backward()
                 optimizer.step()
                 with torch.no_grad():
-                    Z_after, weights_after = reference(X)
-                    expected_after = ((Z_after - target) ** 2).mean().item()
+                    F_after, weights_after = reference(X)
+                    expected_after = ((F_after - target) ** 2).mean().item()
                 with contextlib.redirect_stdout(io.StringIO()):
                     actual, losses, weights = train(mode, num_steps=1)
                 self.assertEqual(len(losses), 2)
@@ -98,7 +105,7 @@ class ResidualTests(unittest.TestCase):
                 self.assertEqual(len(losses), 301)
                 self.assertEqual(len(weights), 301)
                 self.assertTrue(torch.isfinite(torch.tensor(losses)).all())
-                # 新增 LayerNorm 改变了优化过程；要求 300 步至少降低 99%。
+                # 固定输入的学习回归：要求 300 步至少降低 99%。
                 self.assertLess(losses[-1], losses[0] * 0.01)
                 history = torch.stack(weights)
                 self.assertEqual(tuple(history.shape), (301, 2, 3, 3))

@@ -5,9 +5,9 @@ from pathlib import Path
 
 import torch
 
-from attention_sublayer import AttentionSublayer, forward_with_residual
+from attention_sublayer import forward_with_residual  # 保留旧教学示例的导入兼容
+from encoder_layer import EncoderLayer
 from position_encoding import sinusoidal_encoding
-
 
 
 def train(position_encoding="sinusoidal", num_steps=300):
@@ -27,7 +27,7 @@ def train(position_encoding="sinusoidal", num_steps=300):
     # 目标始终来自原始输入；sin/cos 编码只加到模型输入上。
     target = I.mean(dim=1, keepdim=True).repeat(1, n)
     X = I + sinusoidal_encoding(I) if position_encoding == "sinusoidal" else I
-    model = AttentionSublayer(d_in, num_heads, d_k, d_v,
+    model = EncoderLayer(d_in, num_heads, d_k, d_v,
                                use_rope=position_encoding == "rope")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_history = []
@@ -39,8 +39,8 @@ def train(position_encoding="sinusoidal", num_steps=300):
 
     # step 表示已经更新参数的次数，包括更新前和最后更新后的状态。
     for step in range(num_steps + 1):
-        Z, all_attention = model(X)
-        loss = torch.mean((Z - target) ** 2)
+        output, all_attention = model(X)
+        loss = torch.mean((output - target) ** 2)
         loss_history.append(loss.item())
         attention_history.append(all_attention.detach().clone())
 
@@ -56,7 +56,7 @@ def train(position_encoding="sinusoidal", num_steps=300):
     print("\n训练后的各头注意力权重（行：key；列：query）：")
     print(all_attention.detach())
     print("各头每列权重之和：", all_attention.detach().sum(dim=1))
-    print("归一化输出 Z = LayerNorm(X + B) 的形状：", Z.shape)
+    print("Encoder 输出的形状：", output.shape)
     return model, loss_history, attention_history
 
 
