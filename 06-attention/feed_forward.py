@@ -11,8 +11,8 @@ class FeedForward(nn.Module):
         self.fc2 = nn.Linear(d_ff, d_model)
 
     def forward(self, X):
-        """X: (d_model, n)；只变换各 token 的特征，不混合位置。"""
-        H = self.fc1(X.T)       # (n, d_model) → (n, d_ff)
+        """X: (..., d_model, n)；只变换特征，不混合样本或位置。"""
+        H = self.fc1(X.transpose(-2, -1))  # (...,n,d_model) → (...,n,d_ff)
         H = self.activation(H)
         F = self.fc2(H)         # (n, d_ff) → (n, d_model)
-        return F.T
+        return F.transpose(-2, -1)

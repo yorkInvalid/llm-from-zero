@@ -10,8 +10,8 @@ from encoder import Encoder
 from position_encoding import sinusoidal_encoding
 
 
-def train(position_encoding="sinusoidal", num_steps=300, num_layers=3):
-    """在一组固定输入上学习求平均；返回模型及训练记录，绘图由调用者决定。"""
+def train(position_encoding="sinusoidal", num_steps=300, num_layers=3, dropout=0.0):
+    """在固定输入上求平均；返回 eval 模式模型及 eval 记录，绘图独立调用。"""
     if position_encoding not in {"none", "sinusoidal", "rope"}:
         raise ValueError("未知的位置编码模式")
     if num_steps < 0:
@@ -28,7 +28,8 @@ def train(position_encoding="sinusoidal", num_steps=300, num_layers=3):
     target = I.mean(dim=1, keepdim=True).repeat(1, n)
     X = I + sinusoidal_encoding(I) if position_encoding == "sinusoidal" else I
     model = Encoder(num_layers=num_layers, d_model=d_in, num_heads=num_heads,
-                    d_k=d_k, d_v=d_v, use_rope=position_encoding == "rope")
+                    d_k=d_k, d_v=d_v, use_rope=position_encoding == "rope",
+                    dropout=dropout)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_history = []
     attention_history = []
@@ -39,18 +40,23 @@ def train(position_encoding="sinusoidal", num_steps=300, num_layers=3):
 
     # step 表示已经更新参数的次数，包括更新前和最后更新后的状态。
     for step in range(num_steps + 1):
-        output, all_attention = model(X)
-        loss = torch.mean((output - target) ** 2)
+        model.eval()
+        with torch.no_grad():
+            output, all_attention = model(X)
+            loss = torch.mean((output - target) ** 2)
         loss_history.append(loss.item())
         attention_history.append(torch.stack(all_attention).detach().clone())
 
         if step % 50 == 0:
-            print(f"step={step:3d}, loss={loss.item():.10f}")
+            print(f"step={step:3d}, eval_loss={loss.item():.10f}")
         if step == num_steps:
             break
 
         optimizer.zero_grad()
-        loss.backward()
+        model.train()
+        train_output, _ = model(X)
+        train_loss = torch.mean((train_output - target) ** 2)
+        train_loss.backward()
         optimizer.step()
 
     print("\n训练后的注意力权重（layer, head, key, query）：")
@@ -67,16 +73,21 @@ def main():
         default="sinusoidal", help="默认 sinusoidal；none 用于无位置编码对照",
     )
     parser.add_argument("--num-layers", type=int, default=3, help="Encoder 层数，默认 3")
+    parser.add_argument("--dropout", type=float, default=0.0, help="子层丢弃概率，默认 0")
     args = parser.parse_args()
     if args.num_layers < 1:
         parser.error("--num-layers 必须至少为 1")
-    _, losses, weights = train(args.position_encoding, num_layers=args.num_layers)
+    if not 0 <= args.dropout <= 1:
+        parser.error("--dropout 必须在 [0, 1] 内")
+    _, losses, weights = train(args.position_encoding, num_layers=args.num_layers,
+                              dropout=args.dropout)
 
     # 绘图单独调用；导入或使用模型时不需要加载 matplotlib。
     from visualization import plot_encoder_training
 
     output_dir = Path(__file__).resolve().parent / "artifacts"
-    paths = plot_encoder_training(losses, weights, output_dir, name=args.position_encoding)
+    paths = plot_encoder_training(losses, weights, output_dir,
+                                  name=f"{args.position_encoding}-dropout{args.dropout:g}")
     for layer_index, (curves_path, heatmap_path) in enumerate(paths, start=1):
         print(f"\n第 {layer_index} 层权重变化曲线：{curves_path}")
         print(f"第 {layer_index} 层注意力热力图：{heatmap_path}")

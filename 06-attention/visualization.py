@@ -24,7 +24,7 @@ def plot_training(loss_history, attention_history, output_dir, name="rope"):
     grid = fig.add_gridspec(num_heads + 1, n)
     ax = fig.add_subplot(grid[0, :])
     ax.semilogy(loss_history)
-    ax.set(title="Training loss (MSE)", xlabel="Parameter updates", ylabel="Loss")
+    ax.set(title="Eval loss on training input (MSE)", xlabel="Parameter updates", ylabel="Loss")
     ax.grid(alpha=0.3)
 
     for h in range(num_heads):

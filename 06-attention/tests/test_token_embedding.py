@@ -70,7 +70,7 @@ class TokenEmbeddingTests(unittest.TestCase):
 
     def test_invalid_ids_and_position_mode(self):
         model = TokenEncoder(4)
-        for ids in (torch.tensor([]), torch.tensor([[1, 2]]), torch.tensor([-1]), torch.tensor([4])):
+        for ids in (torch.tensor([]), torch.tensor([[[1, 2]]]), torch.tensor([-1]), torch.tensor([4])):
             with self.subTest(ids=ids), self.assertRaises(ValueError):
                 model(ids)
         with self.assertRaises(TypeError):
