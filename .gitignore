@@ -21,3 +21,6 @@ __pycache__/
 .DS_Store
 .backups/
 .hallmark/
+
+# Locally trained sequence-task checkpoint (keep JSON reports)
+06-attention/artifacts/seq2seq/*.pt

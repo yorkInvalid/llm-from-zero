@@ -327,3 +327,135 @@ Encoder 和 Decoder 的层数可以不同。输出仍为 `(...,d_model,T)`；`la
 `tests/test_decoder.py` 验证层数校验、参数独立、与手动逐层调用一致、同一 memory 传递、完整堆叠的因果性、两种 PAD 隔离、左 PAD 数值稳定性，以及优化器实际更新每层 Encoder/Decoder 参数。
 
 当前完成了 Decoder 多层堆叠；尚未加入目标 Token Embedding 封装、词表预测头、teacher forcing 训练和自回归生成。
+
+## Decoder 第五步：目标 Token Embedding 与词表预测层
+
+`token_decoder.py` 提供两层封装：`TokenDecoder` 输出隐藏向量；`TokenDecoderLM` 在其后增加 `nn.Linear(d_model, vocab_size)`，输出目标词表分数。
+
+具体流程（B 为 batch，T 为目标长度，S 为源长度，V 为目标词表大小）：
+
+1. 目标 ID `(B,T)` 通过 `nn.Embedding(V,d_model)` 查表，得到 `(B,T,d_model)`。表随机初始化一次，训练更新表中的向量，ID 本身不更新。源/目标 Embedding 独立，词表大小可以不同。
+2. 转置成 `(B,d_model,T)`。默认加固定 sin/cos 位置编码；`none` 不加，`rope` 在每层目标自注意力的 Q/K 内旋转。与现有 TokenEncoder 一致，暂不乘 `sqrt(d_model)`。两侧位置各自从 0 开始，固定位置编码不参与优化。
+3. 经过输入 Dropout。`train()` 时启用，`eval()` 时关闭；默认 dropout=0。
+4. 将向量传入堆叠 Decoder，每层读取同一份 `(B,d_model,S)` memory。目标 PAD 根据 `padding_idx` 自动识别；源 PAD 必须通过 `source_padding_mask` 传入，不能从 memory 数值推断。每层自注意力仍使用 causal mask。
+5. Decoder 输出转回 `(B,T,d_model)`，再经过共享于各位置的 FC 层，得到 `(B,T,V)` logits。不池化，不先做 softmax；交叉熵直接接收 logits。需要查看概率时才使用 `logits.softmax(dim=-1)`。本版本预测头与 Embedding 不共享权重。
+6. `loss.backward()` 计算梯度，`optimizer.step()` 更新注册参数，包括源/目标 Embedding、两侧堆叠层和预测头。memory 不 detach，梯度能回传到 Encoder。
+
+下面是在本目录内可运行的一次训练更新示例。PAD=0、BOS=1、EOS=2 均由调用方定义；模型不会自动插入这些 ID，也不会自动右移输入。
+
+```python
+import torch
+from torch import nn
+from token_encoder import TokenEncoder
+from token_decoder import TokenDecoderLM
+
+encoder = TokenEncoder(vocab_size=9, num_layers=2, padding_idx=0)
+decoder = TokenDecoderLM(vocab_size=7, num_layers=3, padding_idx=0)
+source_ids = torch.tensor([[3, 4, 5, 0], [4, 5, 0, 0]])
+# 目标完整序列为 [BOS, 3, 4, EOS] 和 [BOS, 5, EOS, PAD]。
+full_target = torch.tensor([[1, 3, 4, 2], [1, 5, 2, 0]])
+decoder_input_ids = full_target[:, :-1]  # [BOS,3,4] / [BOS,5,EOS]
+labels = full_target[:, 1:]             # [3,4,EOS] / [5,EOS,PAD]
+optimizer = torch.optim.Adam(
+    list(encoder.parameters()) + list(decoder.parameters()), lr=0.001)
+encoder.train()
+decoder.train()
+optimizer.zero_grad()
+memory, _ = encoder(source_ids)
+logits, layer_weights = decoder(
+    decoder_input_ids, memory, source_padding_mask=source_ids == 0)
+loss = nn.CrossEntropyLoss(ignore_index=0)(
+    logits.reshape(-1, 7), labels.reshape(-1))
+loss.backward()
+optimizer.step()
+```
+
+输入的 BOS 位置预测第一个目标 token；后续位置预测下一个 token，最后有效位置预测 EOS。输入 PAD mask 与标签忽略是两件事：mask 屏蔽作为 K/V 的 PAD，`ignore_index` 则让 PAD 标签不产生损失。PAD query 的 logits 不保证为零。
+
+单条序列也可直接传 `(T,)` ID 和 `(d_model,S)` memory，返回 `(T,V)` logits。`tests/test_token_decoder.py` 覆盖三种位置模式、逐位置 FC 手算、Batch 与未补齐单条一致性、双 mask、因果性、Dropout、输入校验，以及一次真实交叉熵更新中的梯度和 PAD 保护。
+
+本步完成 ID 到词表 logits 的连接，并以测试和上面的单步示例验证训练链路；完整序列任务的 teacher forcing 训练脚本、验证指标和逐 token 自回归生成留待下一步实现。
+
+## Decoder 第六步：自回归生成
+
+`generation.py` 提供 `greedy_generate(encoder, decoder, source_ids, bos_id, eos_id, max_new_tokens=50)`。第一版支持单条源序列，采用贪心解码，每步重新计算完整目标前缀，尚未使用 KV cache。
+
+生成过程：
+
+1. 根据 Encoder 的 `padding_idx` 构造源 PAD mask，并且只运行一次 Encoder 得到 memory。
+2. 用目标 BOS ID 初始化目标序列，例如 `[1]`。
+3. 将当前完整前缀与同一份 memory 送入 Decoder，取最后位置的 logits。
+4. 屏蔽 BOS 和目标 PAD 的候选分数，再用 argmax 选择分数最高的 token。EOS 仍是可选候选。这是对合法候选的贪心解码，无需先做 softmax。
+5. 将预测 ID 接到前缀末尾。如果它是 EOS 则结束，否则继续。即使没有预测 EOS，达到 `max_new_tokens` 也会停止，不强行追加 EOS。
+
+返回的一维张量包含初始 BOS，以及实际选中的 EOS（如果有）。长度上限只计算新生成 token，不包含 BOS；上限为 0 时直接返回 `[BOS]`。函数自动关闭梯度与 Dropout，并在结束或异常后恢复原来的训练状态，不更新模型参数。
+
+沿用上一步定义的 encoder、decoder、source_ids，可运行：
+
+```python
+from generation import greedy_generate
+
+generated = greedy_generate(
+    encoder, decoder, source_ids[0], bos_id=1, eos_id=2, max_new_tokens=10)
+print(generated.tolist())
+```
+
+模型和输入应在同一设备上。这个例子展示调用流程；随机初始化或只训练一步的模型尚不具备有意义的生成能力。
+
+EOS 是预先加入目标词表的特殊 token，有固定 ID。例如目标词表可以为 `{"<PAD>": 0, "<BOS>": 1, "<EOS>": 2, "我": 3, "爱": 4, "你": 5}`，此时 `vocab_size=6`。训练时将 `[BOS, 我, 爱, 你]` 作为输入，`[我, 爱, 你, EOS]` 作为标签，最后一个位置的交叉熵教模型预测 EOS。EOS 对应词表预测头的一个输出类别，和普通 token 一样由模型预测；生成循环只负责识别这个 ID 并停止。
+
+本仓库的模型接收 ID，不自动维护词表；词表映射、BOS/EOS ID 和训练标签必须由调用方保持一致，BOS、EOS、目标 PAD 要使用不同 ID。当前使用独立输出头，因此 EOS 的输出权重通过交叉熵学习；EOS 的 Embedding 行只有在它作为输入时才可能获得查表梯度。
+
+`tests/test_generation.py` 验证前缀逐步增长、只取最后位置、Encoder 只计算一次、memory 与源 mask 复用、EOS 提前停止、长度限制、BOS/PAD 候选过滤、真实模型推理、参数不变及正常/异常情况下的模式恢复。完整序列任务的训练脚本和生成质量评估仍留待下一步。
+
+## 完整序列任务：训练模型生成倒序序列
+
+在仓库根目录运行（CPU 即可）：
+
+```bash
+.venv/bin/python 06-attention/train_seq2seq.py
+```
+
+`sequence_task.py` 固定 PAD=0、BOS=1、EOS=2，普通 token 为 3～12。随机生成长度 2～6 的源序列，允许重复 token；所有源序列去重后划分为 1024 条训练数据和 128 条验证数据，两者没有相同源序列。相同种子可复现划分。
+
+数据处理以 `[3,5,7]` 为例：
+
+```text
+source_ids:        [3,5,7]
+decoder_input_ids: [BOS,7,5,3]
+labels:            [7,5,3,EOS]
+```
+
+每条样本先独立构造输入和标签，再分别右侧补 PAD。这样输入无需包含 EOS；在较短样本尾部，输入和标签同时为 PAD。它与先补完整目标再切片的方案在有效标签位置上等价。
+
+`train_seq2seq.py` 的训练流程：
+
+1. 创建独立 TokenEncoder 与 TokenDecoderLM：各 2 层，d_model=32，2 个注意力头，每头 Q/K/V 维度为 16，FFN 隐层 128，固定 sin/cos 位置编码。为便于观察这个小任务的学习过程，dropout=0。
+2. 每个 batch 重新计算源 memory，使用真实目标前缀进行 teacher forcing，预测各位置的下一个 token。
+3. 对非 PAD 标签计算交叉熵；Adam 同时更新两侧 Embedding、Encoder、Decoder、预测头。学习率 0.001，梯度范数裁剪上限为 1，默认训练 40 轮。
+4. 每轮在 eval/no_grad 下评估训练和验证损失、token 准确率。损失按有效 token 数加权，包含 EOS，排除 PAD。
+5. 训练结束后，对整个验证集逐条从 BOS 开始生成，最多生成 8 个新 token。整句准确率要求内容、长度和 EOS 全部匹配；EOS 率单独表示是否生成了结束符。生成时不提供真实目标前缀。
+6. 保存 `artifacts/seq2seq/report.json`（配置、历史指标、生成示例）和 `artifacts/seq2seq/model.pt`（模型结构配置、两侧权重和特殊 token ID）。权重文件被 gitignore 忽略；此文件用于推理，不包含恢复训练所需的 Adam 状态。
+
+可选参数包括 `--epochs`、`--train-size`、`--validation-size`、`--batch-size`、`--seed`、`--output-dir`。
+
+默认种子 42 的一次 CPU 实测：验证损失从 2.7146 降至 0.0049，teacher forcing token 准确率约 99.9%；自回归整句准确率为 127/128（99.2%），EOS 率为 100%。这仅验证长度 2～6、同分布未见序列上的倒序能力，不代表自然语言能力或更长序列上的泛化。
+
+在 `06-attention` 目录中加载保存的模型进行预测：
+
+```python
+import torch
+from train_seq2seq import build_models
+from generation import greedy_generate
+
+checkpoint = torch.load('artifacts/seq2seq/model.pt', map_location='cpu', weights_only=True)
+encoder, decoder = build_models(**checkpoint['model_config'])
+encoder.load_state_dict(checkpoint['encoder'])
+decoder.load_state_dict(checkpoint['decoder'])
+result = greedy_generate(encoder, decoder, torch.tensor([3, 5, 7]),
+                         bos_id=checkpoint['bos_id'], eos_id=checkpoint['eos_id'],
+                         max_new_tokens=8)
+print(result.tolist())  # 包含 BOS 和模型实际生成的 EOS。
+```
+
+`tests/test_sequence_task.py` 验证数据划分无重复、目标右移和 EOS/PAD 位置、验证损失的 token 加权、生成指标、评估状态恢复，并训练一个小样本任务达到完整生成正确，再检查权重保存/加载后的结果一致。
