@@ -24,3 +24,4 @@ __pycache__/
 
 # Locally trained sequence-task checkpoint (keep JSON reports)
 06-attention/artifacts/seq2seq/*.pt
+06-attention/artifacts/book-lm/

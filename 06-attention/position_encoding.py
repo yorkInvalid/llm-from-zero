@@ -6,10 +6,10 @@ import torch
 # 公式来源：Transformer §3.5 https://arxiv.org/abs/1706.03762
 # RoFormer §3 https://arxiv.org/abs/2104.09864
 # 两个函数都沿用 (特征维度, 位置数) 的列向量排列。
-def sinusoidal_encoding(x):
+def sinusoidal_encoding(x, position_offset=0):
     """返回与输入同形状的固定 sin/cos 编码，不含可学习参数。"""
     dim, length = x.shape[-2:]
-    positions = torch.arange(length, dtype=x.dtype, device=x.device)
+    positions = torch.arange(position_offset, position_offset + length, dtype=x.dtype, device=x.device)
     even_dims = torch.arange(0, dim, 2, dtype=x.dtype, device=x.device)
     frequencies = 10000.0 ** (-even_dims / dim)
     angles = frequencies[:, None] * positions[None, :]

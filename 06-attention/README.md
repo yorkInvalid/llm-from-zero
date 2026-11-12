@@ -445,17 +445,217 @@ labels:            [7,5,3,EOS]
 
 ```python
 import torch
-from train_seq2seq import build_models
-from generation import greedy_generate
+from train_seq2seq import load_model
 
-checkpoint = torch.load('artifacts/seq2seq/model.pt', map_location='cpu', weights_only=True)
-encoder, decoder = build_models(**checkpoint['model_config'])
-encoder.load_state_dict(checkpoint['encoder'])
-decoder.load_state_dict(checkpoint['decoder'])
-result = greedy_generate(encoder, decoder, torch.tensor([3, 5, 7]),
-                         bos_id=checkpoint['bos_id'], eos_id=checkpoint['eos_id'],
-                         max_new_tokens=8)
+model = load_model('artifacts/seq2seq/model.pt')  # 兼容新旧权重格式。
+result = model.generate(torch.tensor([3, 5, 7]), bos_id=1, eos_id=2, max_new_tokens=8)
 print(result.tolist())  # 包含 BOS 和模型实际生成的 EOS。
 ```
 
 `tests/test_sequence_task.py` 验证数据划分无重复、目标右移和 EOS/PAD 位置、验证损失的 token 加权、生成指标、评估状态恢复，并训练一个小样本任务达到完整生成正确，再检查权重保存/加载后的结果一致。
+
+## 统一的 Transformer 模型接口
+
+`transformer.py` 的 `Transformer(nn.Module)` 将现有 TokenEncoder、TokenDecoderLM 注册为 `model.encoder` 和 `model.decoder`。这是接口整理，内部 Attention、FFN、位置编码和生成算法不变。
+
+```python
+from transformer import Transformer
+
+model = Transformer(
+    source_vocab_size=13, target_vocab_size=13,
+    source_padding_idx=0, target_padding_idx=0,
+)
+source_ids = torch.tensor([[3, 5, 7]])
+target_input_ids = torch.tensor([[1, 7, 5, 3]])
+logits = model(source_ids, target_input_ids)  # (1,4,13)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+```
+
+`forward` 内部完成源查表与 Encoder、源 PAD mask 构造、目标查表与 Decoder、词表投影。源/目标词表大小、PAD ID 和堆叠层数可以分别配置。输入支持单序列或 batch；训练代码仍负责目标右移、标签、交叉熵和优化器更新，模型不会自动改变目标输入。
+
+需要观察注意力时调用 `logits, weights = model(source_ids, target_input_ids, return_attention=True)`；`weights['encoder']` 为逐层 Encoder 权重，`weights['decoder']` 为逐层 self/cross 权重。
+
+生成使用 `model.generate(source_ids[0], bos_id=1, eos_id=2, max_new_tokens=8)`，沿用单序列贪心生成。`model.train()`、`model.eval()` 和 `model.to(device)` 会递归作用于两侧组件，`model.parameters()` 包含两侧所有可训练参数。
+
+倒序脚本已改用 `build_model()`、`train_model(model, ...)` 和 `evaluate(model, ...)`。新 checkpoint 保存 `model.state_dict()` 与完整 `model.config`，`load_model()` 同时支持旧的 encoder/decoder 分开存储格式；之前的已训练权重无需重训。新的完整配置也可以通过 `Transformer(**model.config)` 重建模型。
+
+`tests/test_transformer.py` 验证封装与手动调用组件的结果一致、不同源/目标 PAD ID 正确传递、统一优化器更新两侧参数、生成一致性以及旧 checkpoint 加载；倒序任务测试继续覆盖新 checkpoint 保存与加载。
+
+## 连续文本预训练：从书籍中自动构造标签
+
+这是另一条教学路线：`causal_lm.py` 实现 Decoder-only 模型，每层只有因果自注意力、FFN 及两次残差/LayerNorm，没有 Encoder 和 Cross-Attention。现有翻译 Transformer 保留。默认模型约 16.6 万参数，2 层、d_model=64、4 头、FFN=256、Dropout=0.1、上下文 64 token，适合先在本机观察。
+
+默认数据来自 [Project Gutenberg 的 Alice's Adventures in Wonderland](https://www.gutenberg.org/ebooks/11)，页面标注美国公版。下载时保留带来源与许可的原文，同时记录 URL、字节数和 SHA256；处理后的文本仅用于本地实验。也可通过 `--text-file path/to/book.txt` 使用自己的 UTF-8 文本（空行分段）。数据和模型保存在被 gitignore 忽略的 `artifacts/book-lm/`，不会随代码上传。
+
+以下命令都在仓库根目录运行。
+
+### 1. 准备数据：看原文如何变成训练材料
+
+```bash
+.venv/bin/python 06-attention/train_lm.py prepare
+```
+
+`text_pretraining.py` 去掉 Gutenberg 外壳与示例书目录，合并段落内换行，过滤不足 40 字符的段落并去重。按原书顺序划分 80%/10%/10% 段落为训练/验证/测试集，之后才切窗口。512 词表的 ByteLevel BPE 只在训练段落上学习；完整字节 alphabet 可表示未见字符，不需要拿测试集扩词表。
+
+查看 `artifacts/book-lm/data/`：`original.txt` 是保留的原文，`train.json`、`validation.json`、`test.json` 是可直接阅读的段落，`tokenizer.json` 为实际分词器，`source.json` 为来源与划分记录。这只是基础清洗，不保证彻底排除书内近重复内容。
+
+每个段落作为一份独立短文档，编码为 `[BOS, 文本tokens..., EOS]`。EOS 在此表示段落结束。长段落切成窗口，仅原段落末尾有 EOS；窗口边界不伪造 EOS。窗口之间不保留模型状态，不学习跨段落长程关系。
+
+### 2. 检查输入与标签：先不训练
+
+```bash
+.venv/bin/python 06-attention/train_lm.py inspect
+```
+
+终端与 `artifacts/book-lm/run/inspect.json` 显示：
+
+- `first_original_paragraph`：对应原文。
+- `input_text`：第一个窗口还原出的文本。
+- `input_ids` / `labels`：一个 batch 的实际 ID 矩阵。
+- `rows`：逐位置的输入 token、输入 ID、标签 token、标签 ID。
+
+核心操作在 `make_windows()`：`input=piece[:-1]`，`label=piece[1:]`。例如 `[BOS,A,B,C,EOS]` 变为输入 `[BOS,A,B,C]`、标签 `[A,B,C,EOS]`。BPE 的一个 token 不一定是一个完整单词，显示中的 `Ġ` 是 ByteLevel 空格标记。PAD 输入 ID=0；标签补齐为 -100，由交叉熵忽略。
+
+### 3. 训练：看前向输出、梯度和参数变化
+
+```bash
+.venv/bin/python 06-attention/train_lm.py train --epochs 5
+```
+
+模型数据流为 `ID (B,T) → Embedding → 位置编码 → 因果 Blocks → FC → logits (B,T,512)`。例子中 batch=16、T=64，因此 logits 是 `(16,64,512)`；每个位置都有 512 个候选 token 分数。
+
+`FIRST STEP` 日志打印实际输入/输出形状、loss、Embedding 梯度范数与 optimizer.step 后的权重变化范数。训练顺序为清梯度、前向、交叉熵、backward、梯度裁剪、Adam.step；标签来自原文，无需人工问答标注。
+
+每轮日志及 `report.json` 包含：
+
+- `loss`：有效位置的平均交叉熵，越低表示给真实下一个 token 的概率越高。
+- `perplexity`：`exp(loss)`，越低越好；只在相同 tokenizer/数据处理下比较。不是生成准确率。
+- `token_accuracy`：给定真实前缀时，最高分 token 命中标签的比例，不代表独立续写质量。
+- train 与 validation 的差距：训练损失下降而验证损失上升，可能是过拟合。
+
+评估使用 eval/no_grad；训练只更新训练数据上的参数。仅根据 validation loss 选择 `best.pt`，里面包含模型配置、权重和 tokenizer，不包含完整断点续训状态。`predictions.json` 展示最佳模型在验证样本每个位置上的真实标签和 top-3 候选及概率。
+
+本机已经验证 MPS 前向/反向可运行；可使用 `--device mps` 训练。默认 CPU，短序列小模型上 MPS 不保证更快。保持数据和参数一致，实测后再选择。
+
+### 4. 测试：评估未参与选模型的留出集
+
+```bash
+.venv/bin/python 06-attention/train_lm.py test
+```
+
+该命令加载 best.pt，单独读取 test.json，输出 loss、perplexity、token_accuracy 和有效 token 数，并保存 run/test.json。测试过程不训练。不要反复根据测试结果调整配置；调参只看验证集。这是同一本书后段的留出评估，不代表其他书籍或通用知识能力。
+
+### 5. 续写：看自由生成与给定真实前缀评估的区别
+
+```bash
+.venv/bin/python 06-attention/train_lm.py generate --prompt "Alice was" --max-new-tokens 32
+```
+
+输出 prompt、prompt_ids、output_ids 和解码后的 text。程序将模型自己预测的 token 追加到前缀，继续预测，而不是提供原文答案。当前使用贪心解码，遇 EOS 停止；输出不包含参考续文的比较分数。
+
+超过上下文长度时只看最后 64 个 token，并重新从位置 0 编码，这是教学滑动窗口实现；尚无 KV cache。小数据、短时间训练下出现重复、拼写错误或不通顺是可预期的，不应把损失下降当作已获得成熟语言能力。
+
+命令支持 `--data-dir`、`--run-dir` 分离不同实验。重新 prepare 会改变数据与词表，因此旧 checkpoint 应配套使用原数据目录；test 会校验 tokenizer 哈希。新实验使用新 run-dir，避免覆盖之前模型。
+
+测试文件 `tests/test_text_pretraining.py` 检查数据划分、字节分词还原、下一 token 错位、窗口标签覆盖、PAD 忽略、未来隔离、真实小样本学习、EOS 生成、checkpoint 还原和验证指标加权。
+
+### 6. 逐轮观察报告：模型到底学到了什么
+
+训练命令现在自动记录第 0 轮（随机初始化）和每个训练轮次。示例：
+
+```bash
+.venv/bin/python 06-attention/train_lm.py train --epochs 5 --run-dir 06-attention/artifacts/book-lm/observation-run
+open 06-attention/artifacts/book-lm/observation-run/training_observation.html
+```
+
+这是本地离线 HTML 报告，无需启动服务。报告引用同目录的 `curves.png`，分享时应一起保留。内容包括：
+
+- 训练/验证 loss、perplexity、token accuracy 曲线，标出最佳验证轮次。困惑度使用对数纵轴。
+- 固定提示词 `Alice was`、`The rabbit`、`She said` 在每一轮的完整续写。所有轮次均使用贪心解码、最多 32 个新 token，并关闭 Dropout。
+- 同一个验证窗口的输入文本、每个位置的真实下一 token、真实标签概率、前三候选及命中标记。PAD 标签不计入命中率。
+
+点击轮次展开对照。真实标签概率变高、进入 top-3 的位置变多，表示这个窗口上的预测在改善，但不保证每个位置单调改善；整体判断仍看完整验证集。自由续写使用模型自己的输出，可能累积错误，因此验证 loss 下降不意味着续写一定流畅。
+
+`observations.json` 保存逐轮原始记录与指标；`report.json` 仍保存训练汇总；`predictions.json` 仍是最佳 checkpoint 的验证预测。逐轮报告不会把所有轮次替换成最佳模型，也不读取测试集。
+
+默认配置实测：固定验证窗口 top-3 命中从第 0 轮 0/40 增加到第 5 轮 20/40；自由续写仍会重复与拼写出错。观察函数在 no_grad/eval 下执行，恢复各模块原先状态，测试确认参数和训练随机数状态不变；同种子实验的训练指标与加入观察前完全一致。
+
+### 7. 现代结构与实时 TensorBoard
+
+上面第 6 节的数值为旧版 Post-LN/ReLU/sin-cos/恒定学习率实验。现在新建 CausalLM 的默认配置升级为以下五项；KV cache 见下一节：
+
+| 项目 | 当前行为 | 切回旧设置 |
+|---|---|---|
+| Pre-Norm | 子层先 norm，再 Attention/FFN，最后残差相加；全部 Blocks 后还有 final norm | `--norm-style post` |
+| RMSNorm | 每 token 除以均方根，使用可学习 gamma，无 bias；半精度用 float32 统计 | `--norm-type layer` |
+| RoPE | 每个头的 Q/K 内旋转，不再在 Embedding 处加 sin/cos | `--position-encoding sinusoidal` |
+| SwiGLU | `down(silu(gate(x)) * up(x))`，三投影无 bias | `--ffn-type relu` |
+| Warmup + cosine | 前 10% 优化步骤线性升至峰值，之后余弦降到峰值的 10% | `--lr-schedule constant` |
+
+默认 d_model=64，SwiGLU 隐层为 176（约 8/3*d，向上对齐 8），参数量与旧 4*d ReLU FFN 接近但不完全相同。RoPE 复用已有实现；生成仍按窗口重算。现有翻译 Encoder–Decoder 不受此次修改影响。
+
+学习率是按 optimizer 更新步骤计算，第一步不跳过 warmup；`--learning-rate` 设置峰值，`--warmup-ratio` 设置 warmup 比例，`--min-lr-ratio` 设置最终比例。新 checkpoint 保存完整模型配置与训练配置；旧 checkpoint 缺少结构字段时，加载器按 Post-LN/LayerNorm/sin-cos/ReLU 重建。仍只提供推理 checkpoint，不承诺断点续训。
+
+现成的实时可视化已接入 **TensorBoard**。依赖已写入 pyproject.toml / uv.lock，重建环境运行 `uv sync`。不需要安装 TensorFlow，不需要外部账号。开两个终端：
+
+```bash
+# 终端 1：本地仪表盘，浏览器访问 http://127.0.0.1:6006/
+.venv/bin/tensorboard --logdir 06-attention/artifacts/book-lm --host 127.0.0.1 --port 6006 --reload_interval 5
+```
+
+```bash
+# 终端 2：新版训练，使用独立目录，避免覆盖旧模型
+.venv/bin/python 06-attention/train_lm.py train --epochs 5 --run-dir 06-attention/artifacts/book-lm/modern-run
+```
+
+训练日志保存到每个 run 的 `tensorboard/`。训练中每 10 步（可用 `--log-every` 调整）写入并刷新：
+
+- `optimization/loss`：该记录步骤的 minibatch loss，不是整轮平均。
+- `optimization/learning_rate`：该次参数更新实际使用的学习率。
+- `optimization/gradient_norm`：裁剪前的全模型梯度范数，裁剪阈值仍为 1。
+- `optimization/tokens_per_second`：日志区间内有效 token 吞吐量，不含每轮验证时间，不代表纯 GPU 内核速度。
+
+每轮增加完整 train/validation 的 loss、perplexity、token accuracy；Text 页显示配置、固定提示词续写和验证窗口 top-3 候选。横轴为 optimizer global step（不是 epoch）；文本中标注 epoch。`test` 命令独立记录 `test/*`，不会为了刷新网页而反复评估测试集：
+
+```bash
+.venv/bin/python 06-attention/train_lm.py test --run-dir 06-attention/artifacts/book-lm/modern-run
+```
+
+使用以下命令跑旧配置对照，网页中勾选两个 run 即可比较。不同实验使用新的 run-dir，避免把多个训练的 event 文件混到同一个 run。相同种子不意味着不同结构具有逐参数相同的初始化，且一次改变五项不能归因到单独组件。
+
+```bash
+.venv/bin/python 06-attention/train_lm.py train --epochs 5 --norm-style post --norm-type layer --position-encoding sinusoidal --ffn-type relu --lr-schedule constant --run-dir 06-attention/artifacts/book-lm/baseline-run
+```
+
+实测新版 5 轮验证 loss=4.0215，旧版为 3.9132；小数据短训练没有显示新版优于旧版，不应把结构升级当成效果保证。新版 RMSNorm/SwiGLU/RoPE 的 MPS 前向反向、学习率边界、新旧 checkpoint、实时日志可读性均有验证。
+
+TensorBoard 支持长期记录和多实验对照，但它不会自动让数据加载变成流式：当前书籍脚本仍将分词后的窗口放在内存中，并每轮完整验证。扩大到大量书籍前还需要分片/流式 Dataset、可配置验证频率和完整训练恢复。云端租 GPU 时，可用 SSH 端口转发查看远端的本地 TensorBoard，不必公开仪表盘端口。
+
+### 8. KV cache：生成时复用各层历史 K/V
+
+`CausalLM.generate()` 现在默认 `use_cache=True`，旧模型无需重训。训练 `model(ids)` 仍返回 logits，仍对整个序列做前向与反向，不启用缓存。
+
+生成分两阶段：第一次 prefill 完整提示词，在每层/每头保存 K、V 和历史 PAD mask；随后 decode 只输入新增 token，在每层计算它的 Q/K/V，再将新的 K/V 追加到旧缓存，得到当前位置的输出。历史 Q 不保存。RoPE 缓存的是已经旋转的 K，V 不旋转，新增 Q/K 使用从缓存长度开始的位置。旧版 sin/cos 模式也使用相同的位置偏移。
+
+```bash
+# 默认开启
+.venv/bin/python 06-attention/train_lm.py generate --run-dir 06-attention/artifacts/book-lm/modern-run --prompt "Alice was" --max-new-tokens 32
+# 完整重算，对照输出
+.venv/bin/python 06-attention/train_lm.py generate --run-dir 06-attention/artifacts/book-lm/modern-run --prompt "Alice was" --max-new-tokens 32 --no-kv-cache
+```
+
+低层接口供观察缓存用，传入 ids 仅包含新增部分：
+
+```python
+model.eval()
+with torch.no_grad():
+    logits, cache = model(prompt_ids, use_cache=True)
+    # next_ids 可以是一枚 token，也可以是连续的一小段新 token。
+    logits, cache = model(next_ids, use_cache=True, kv_cache=cache)
+```
+
+`cache` 是按层排列的列表，每层包含 `k`、`v`（各头张量列表）和累计 `padding_mask`。单条序列每头 K 形状为 `(d_k, 已缓存长度)`，V 为 `(d_v, 已缓存长度)`；batch 在前面多一维。模型低层支持 batch，但 generate 仍只支持单序列。缓存不得跨不同模型参数或不同请求复用；generate 使用局部缓存，不污染下一次调用、不保存到 checkpoint。缓存路径要求 eval + no_grad，避免误当作训练优化。
+
+**上下文窗口的限制：**原来的生成算法在超过 context_length 时截掉最早 token，并把窗口位置重新从零编码。保留语义需要重新计算窗口内各层表示，不能只删掉缓存里最早的 K/V。因此当前在窗口满后每一步重建缓存；未满窗口时才走增量加速。低层 forward 遇到缓存加新输入超长会明确报错，generate 自动重建。进一步做持续滑动缓存需要单独设计模型上下文语义。
+
+测试覆盖新旧结构的 prefill、逐 token 和多 token 解码、PAD 与 batch、RoPE/sin-cos 位置偏移、窗口重建、EOS 停止、模式恢复、缓存隔离及正常训练梯度。以 3-token 提示生成 4 个新 token 为例，未满窗口时实际前向输入长度是 `[3,1,1,1]`，完整重算则为 `[3,4,5,6]`。浮点运算顺序可能产生微小差异，测试比较 logits 的数值容差，并对真实 checkpoint 检查生成 ID 一致性。

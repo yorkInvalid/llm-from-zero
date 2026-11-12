@@ -33,7 +33,7 @@ class MultiHeadAttention(nn.Module):
         ])
         self.W_o = nn.Parameter(torch.randn(d_in, num_heads * d_v) * 0.1)
 
-    def forward(self, X, padding_mask=None, causal=False, memory=None):
+    def forward(self, X, padding_mask=None, causal=False, memory=None, *, use_cache=False, kv_cache=None):
         """X: (...,d_in,target_len)；memory 可为 (...,d_in,source_len)。
 
         memory=None 为自注意力；否则 Q 来自 X，K/V 来自 memory。
@@ -45,6 +45,21 @@ class MultiHeadAttention(nn.Module):
             raise ValueError("X 必须为非空的 (d_in,n) 或 (batch,d_in,n)")
         if X.shape[-2] != self.d_in:
             raise ValueError("X 的特征维度必须等于 d_in")
+        if kv_cache is not None and not use_cache:
+            raise ValueError('传入 kv_cache 时必须启用 use_cache')
+        if use_cache and (self.training or torch.is_grad_enabled() or memory is not None or not causal):
+            raise ValueError('KV cache 仅支持 eval + no_grad 下的因果自注意力')
+        past_length = 0
+        if kv_cache is not None:
+            if len(kv_cache['k']) != self.num_heads or len(kv_cache['v']) != self.num_heads:
+                raise ValueError('缓存的头数不匹配')
+            past_length = kv_cache['padding_mask'].shape[-1]
+            for h, (k, v) in enumerate(zip(kv_cache['k'], kv_cache['v'])):
+                if (k.shape != X.shape[:-2] + (self.d_k, past_length)
+                        or v.shape != X.shape[:-2] + (self.W_v[h].shape[0], past_length)
+                        or k.device != X.device or v.device != X.device
+                        or k.dtype != X.dtype or v.dtype != X.dtype):
+                    raise ValueError('缓存的 batch、维度、设备或 dtype 不匹配')
         key_value_input = X
         if memory is not None:
             if causal:
@@ -65,22 +80,28 @@ class MultiHeadAttention(nn.Module):
                 raise ValueError("padding_mask 形状必须与 K/V 的 batch 和序列长度一致")
             if padding_mask.device != X.device:
                 raise ValueError("padding_mask 和 X 必须在同一设备")
-            if padding_mask.all(dim=-1).any():
-                raise ValueError("每条序列必须至少包含一个非 PAD token")
-        positions = torch.arange(X.shape[-1], dtype=X.dtype, device=X.device)
+        if use_cache:
+            if padding_mask is None:
+                padding_mask = torch.zeros(X.shape[:-2] + X.shape[-1:], dtype=torch.bool, device=X.device)
+            if kv_cache is not None:
+                padding_mask = torch.cat((kv_cache['padding_mask'], padding_mask), dim=-1)
+        if padding_mask is not None and padding_mask.all(dim=-1).any():
+            raise ValueError("每条序列必须至少包含一个非 PAD token")
+        positions = torch.arange(past_length, past_length + X.shape[-1], device=X.device)
         # 两种 mask 语义独立，最后取并集；True 始终表示禁止读取。
         padding_blocked = padding_mask.unsqueeze(-1) if padding_mask is not None else None
         future_blocked = None
         if causal:
-            token_positions = torch.arange(X.shape[-1], device=X.device)
+            token_positions = torch.arange(past_length + X.shape[-1], device=X.device)
             # 行 key、列 query：key > query 为未来位置，屏蔽严格下三角。
-            future_blocked = token_positions[:, None] > token_positions[None, :]
+            future_blocked = token_positions[:, None] > positions[None, :]
         blocked = padding_blocked
         if future_blocked is not None:
             blocked = future_blocked if blocked is None else blocked | future_blocked
         no_readable_key = blocked.all(dim=-2, keepdim=True) if blocked is not None else None
         head_outputs = []
         head_weights = []
+        cached_k, cached_v = [], []
 
         for h in range(self.num_heads):
             Q = self.W_q[h] @ X
@@ -90,6 +111,12 @@ class MultiHeadAttention(nn.Module):
             if self.use_rope:
                 Q = apply_rope(Q, positions)
                 K = apply_rope(K, positions)
+            if kv_cache is not None:
+                K = torch.cat((kv_cache['k'][h], K), dim=-1)
+                V = torch.cat((kv_cache['v'][h], V), dim=-1)
+            if use_cache:
+                cached_k.append(K)
+                cached_v.append(V)
             A = K.transpose(-2, -1) @ Q  # 行是 key，列是 query
             A = A / (self.d_k ** 0.5)
             if blocked is not None:
@@ -107,4 +134,6 @@ class MultiHeadAttention(nn.Module):
 
         B_concat = torch.cat(head_outputs, dim=-2)
         B = self.W_o @ B_concat
+        if use_cache:
+            return B, torch.stack(head_weights, dim=-3), dict(k=cached_k, v=cached_v, padding_mask=padding_mask)
         return B, torch.stack(head_weights, dim=-3)
