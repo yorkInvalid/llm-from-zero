@@ -1,5 +1,7 @@
 # LLM 从零学起：AI 通用能力与面试准备
 
+**2026-11-12 当前模型学习入口：[07 · 现代 LLM](07-modern-llm/README.md)。** 06 已完成 Transformer、连续文本预训练、实时监控与 KV cache；按本次讨论进入真实模型结构、推理、预训练/SFT/RL 路线。第一课为我们的 CausalLM 与 Qwen3-0.6B 配置对照及 GQA 小实验，不下载权重、不租 GPU。以下旧路线入口保留为历史。
+
 **2026-11-03 当前课程：[第四课 · RAG 检查与有依据的改进](cloud-ai-interview/04-rag-evaluation/LESSON.md)。** 第三课用户自报完成，已有真实模型回答记录；基础云部署/网络按用户选择跳过。下面旧入口与记录保留为历史。
 
 **现在学习 [云与 AI 第 02 课 · HTTP 服务](cloud-ai-interview/02-http-service/LESSON.md)。** 按你觉得第一课偏简单的反馈，直接进入服务开发与故障实验；第二课使用普通 Python 项目、终端与测试，不要求 Jupyter，下一课部署同一服务。
