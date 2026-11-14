@@ -9,13 +9,21 @@
 .venv/bin/python 07-modern-llm/gqa_demo.py
 ```
 
+## 第二课入口：加载真实权重
+
+结构课之后打开 [02 · 真实 Qwen 推理](02-real-inference/lesson.ipynb)。先看流程图与真实回答，再展开输入 ID、首层张量、手动自回归、采样和 KV cache。已有本机 MPS 执行输出；运行方式见 [第二课 README](02-real-inference/README.md)。本课新增可选 `inference` 依赖，首次下载权重到本机缓存。
+
+## 第三课入口：预训练与继续预训练
+
+打开 [03 · 预训练与继续预训练](03-pretraining/lesson.ipynb)。在 Mac 上用 125,312 参数的随机 Qwen3 小配置完成真实训练：文本 A 预训练 → 保存与加载 → 文本 B 继续预训练；另行验证精确断点恢复。包含实际梯度、参数变化、验证曲线和续写，运行说明见 [第三课 README](03-pretraining/README.md)。没有加载官方 0.6B 权重进行更新。
+
 ## 本章路线
 
 | 小节 | 要回答的问题 | 状态 |
 |---|---|---|
-| 01 · 真实模型结构对照 | 配置怎样映射到 Attention、FFN、参数和缓存？ | 本次已实现 |
-| 02 · 加载小模型推理 | Base 与聊天模型怎样输入，如何测速度与内存？ | 后续 |
-| 03 · 预训练与继续预训练 | 文本怎样变成训练目标，知识与续写从哪里来？ | 后续，复用 06 实验 |
+| 01 · 真实模型结构对照 | 配置怎样映射到 Attention、FFN、参数和缓存？ | 已制作；用户自报结构课学完 |
+| 02 · 加载小模型推理 | 聊天模板怎样变成输入，如何逐 token 生成、测速度与内存？ | [课件已制作并实测](02-real-inference/lesson.ipynb) |
+| 03 · 预训练与继续预训练 | 文本怎样变成 labels，梯度怎样更新参数，保存后怎样继续学？ | [课件已制作并实测](03-pretraining/lesson.ipynb) |
 | 04 · SFT 与 LoRA | 对话模板、回答 loss mask、参数高效微调是什么？ | 后续 |
 | 05 · CoT 与推理评估 | 中间步骤是否提高正确率，增加多少 token 和延迟？ | 后续 |
 | 06 · RL 与 GRPO | 模型自己生成、评分、更新的循环怎么运行？ | 后续 |
@@ -106,3 +114,13 @@ Notebook 已包含完整结构、Attention 分支和 MHA/GQA 对照三张图；�
 06 的对应位置为 `CausalBlock`、`MultiHeadAttention`、`SwiGLU`；07 的 `TinyGQA` 单独演示共享关系，没有修改 06 模型。
 
 本课先讲结构与计算，不安排猜数字或填空。下一课加载真实权重观察输入、chat template 和生成。教师运行验证不计为用户已独立完成。
+
+## RoPE 频率控制实验
+
+`lesson.ipynb` 已加入真实 Qwen3-0.6B 配置下的频率分布、位置敏感度、人工“前一个 token”注意力实验。使用人工构造的完整 128 维 Q/K，未加载预训练权重；不将控制实验当作真实模型的已学习行为。
+
+```bash
+.venv/bin/python 07-modern-llm/rope_frequency_experiment.py
+```
+
+三张图与全部 64 对频率、数值结果保存在 `assets/rope-experiment/`。

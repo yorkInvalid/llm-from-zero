@@ -1,0 +1,151 @@
+{
+  "kind": "teacher_execution_not_student_completion",
+  "executed_at": "2026-11-14T16:46:35.976223+08:00",
+  "device": "cpu",
+  "torch": "2.14.1",
+  "transformers": "4.57.3",
+  "architecture": "tiny Qwen3 from random initialization, not pretrained Qwen3-0.6B",
+  "parameters": 125312,
+  "tokenizer_sha256": "4c072173e21a72eb93cb703fe3d9e5129b161aaa4542547e13aacd1ce36f765a",
+  "source": {
+    "title": "Alice’s Adventures in Wonderland",
+    "author": "Lewis Carroll",
+    "source": "https://www.gutenberg.org/ebooks/11",
+    "text_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+    "source_bytes": 174311,
+    "source_sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e",
+    "corpus_sha256": "fe8e80b1dd06d69219a16b0550ef0e38f8b52b43cac46ce40e84e247284c1bc8",
+    "tokenizer_sha256": "4c072173e21a72eb93cb703fe3d9e5129b161aaa4542547e13aacd1ce36f765a",
+    "selection": "06 split_paragraphs: train[:120], train[291:411], validation[:24], test[:24]; before windowing",
+    "tokenizer_training": "train_a only; ByteLevel BPE 512; frozen for stage B",
+    "rights": "Original 1865 English text, public domain; sourced from Project Gutenberg ebook 11.",
+    "paragraph_counts": {
+      "train_a": 120,
+      "train_b": 120,
+      "validation": 24,
+      "test": 24
+    }
+  },
+  "steps_a": 200,
+  "steps_b": 100,
+  "gradient_probe": {
+    "Embedding": {
+      "gradient_norm": 1.642945408821106,
+      "unchanged_after_backward": true,
+      "max_update": 0.0010008662939071655
+    },
+    "Wq": {
+      "gradient_norm": 0.4677993655204773,
+      "unchanged_after_backward": true,
+      "max_update": 0.0010006874799728394
+    },
+    "RMSNorm gamma": {
+      "gradient_norm": 0.015382848680019379,
+      "unchanged_after_backward": true,
+      "max_update": 0.0010100007057189941
+    }
+  },
+  "validation_initial": {
+    "loss": 6.2392502766783515,
+    "perplexity": 512.4741530555087,
+    "target_tokens": 2232
+  },
+  "validation_a": {
+    "loss": 4.470814141748627,
+    "perplexity": 87.4278727277159,
+    "target_tokens": 2232
+  },
+  "validation_b": {
+    "loss": 4.3278082812131515,
+    "perplexity": 75.77802032054703,
+    "target_tokens": 2232
+  },
+  "test_b": {
+    "loss": 4.204042322151326,
+    "perplexity": 66.95644424857153,
+    "target_tokens": 2038
+  },
+  "history_a": [
+    {
+      "step": 25,
+      "batch_loss": 5.49465799331665,
+      "validation_loss": 5.502408020385277,
+      "gradient_norm": 0.5618883371353149
+    },
+    {
+      "step": 50,
+      "batch_loss": 5.394128322601318,
+      "validation_loss": 5.307939127781912,
+      "gradient_norm": 0.44213050603866577
+    },
+    {
+      "step": 75,
+      "batch_loss": 5.115049362182617,
+      "validation_loss": 5.183857163861661,
+      "gradient_norm": 0.8535727858543396
+    },
+    {
+      "step": 100,
+      "batch_loss": 4.880407333374023,
+      "validation_loss": 4.977287752653963,
+      "gradient_norm": 0.880931556224823
+    },
+    {
+      "step": 125,
+      "batch_loss": 4.668811321258545,
+      "validation_loss": 4.798634013394729,
+      "gradient_norm": 1.4532443284988403
+    },
+    {
+      "step": 150,
+      "batch_loss": 4.547266960144043,
+      "validation_loss": 4.660878501698963,
+      "gradient_norm": 0.998680055141449
+    },
+    {
+      "step": 175,
+      "batch_loss": 4.327920913696289,
+      "validation_loss": 4.577192345186801,
+      "gradient_norm": 1.1282906532287598
+    },
+    {
+      "step": 200,
+      "batch_loss": 4.272893905639648,
+      "validation_loss": 4.470814141748627,
+      "gradient_norm": 1.255070447921753
+    }
+  ],
+  "history_b": [
+    {
+      "step": 25,
+      "batch_loss": 4.16361665725708,
+      "validation_loss": 4.4045588369865145,
+      "gradient_norm": 1.4040896892547607
+    },
+    {
+      "step": 50,
+      "batch_loss": 3.98060941696167,
+      "validation_loss": 4.3612001704913315,
+      "gradient_norm": 1.4652127027511597
+    },
+    {
+      "step": 75,
+      "batch_loss": 4.07340669631958,
+      "validation_loss": 4.350100337604468,
+      "gradient_norm": 1.3607102632522583
+    },
+    {
+      "step": 100,
+      "batch_loss": 3.7383015155792236,
+      "validation_loss": 4.3278082812131515,
+      "gradient_norm": 1.4854685068130493
+    }
+  ],
+  "generations": {
+    "initial": "Alice was was was was was was was was was was was was was was was was was was was was was was was was was was was was was was was was was",
+    "after_a": "Alice was cooo, and the can, and the cante, and the canttted, and the canted",
+    "after_b": "Alice was the The The The The The Hatter the Hatter, and the Hatter, and the H"
+  },
+  "resume_max_parameter_error": 0.0,
+  "elapsed_seconds": 41.06848933303263
+}

@@ -1,0 +1,206 @@
+{
+  "model_config": {
+    "architectures": [
+      "Qwen3ForCausalLM"
+    ],
+    "attention_bias": false,
+    "attention_dropout": 0.0,
+    "bos_token_id": 151643,
+    "eos_token_id": 151645,
+    "head_dim": 128,
+    "hidden_act": "silu",
+    "hidden_size": 1024,
+    "initializer_range": 0.02,
+    "intermediate_size": 3072,
+    "max_position_embeddings": 40960,
+    "max_window_layers": 28,
+    "model_type": "qwen3",
+    "num_attention_heads": 16,
+    "num_hidden_layers": 28,
+    "num_key_value_heads": 8,
+    "rms_norm_eps": 1e-06,
+    "rope_scaling": null,
+    "rope_theta": 1000000,
+    "sliding_window": null,
+    "tie_word_embeddings": true,
+    "torch_dtype": "bfloat16",
+    "transformers_version": "4.51.0",
+    "use_cache": true,
+    "use_sliding_window": false,
+    "vocab_size": 151936
+  },
+  "scope": "Actual config; constructed post-QK-Norm vectors; no pretrained weights or training.",
+  "pair_layout": "half split: (i, i+64), zero-based",
+  "similarity": "dot(rotated_q,rotated_k)/(norm(q)*norm(k)); not probability",
+  "groups_at_window_1000": {
+    "at_least_one_turn_in_1000": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "between_099_similarity_limit_and_one_turn_in_1000": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ],
+    "within_099_similarity_limit_in_1000": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ]
+  },
+  "single_pair_results": [
+    {
+      "pair_index": 0,
+      "coordinates": [
+        0,
+        64
+      ],
+      "scores": {
+        "0": 1.0,
+        "1": 0.5403023058681398,
+        "2": -0.4161468365471424,
+        "10": -0.8390715290764523,
+        "100": 0.8623188722876839,
+        "1000": 0.562379076290703
+      }
+    },
+    {
+      "pair_index": 16,
+      "coordinates": [
+        16,
+        80
+      ],
+      "scores": {
+        "0": 1.0,
+        "1": 0.9995000416652778,
+        "2": 0.998000666577784,
+        "10": 0.9504152802551828,
+        "100": -0.9997860728793259,
+        "1000": 0.9786826965598924
+      }
+    },
+    {
+      "pair_index": 32,
+      "coordinates": [
+        32,
+        96
+      ],
+      "scores": {
+        "0": 1.0,
+        "1": 0.9999995000000416,
+        "2": 0.9999980000006666,
+        "10": 0.9999500004166652,
+        "100": 0.9950041652780257,
+        "1000": 0.5403023058681398
+      }
+    },
+    {
+      "pair_index": 48,
+      "coordinates": [
+        48,
+        112
+      ],
+      "scores": {
+        "0": 1.0,
+        "1": 0.9999999994999998,
+        "2": 0.9999999979999998,
+        "10": 0.9999999500000003,
+        "100": 0.9999950000041665,
+        "1000": 0.9995000416652778
+      }
+    }
+  ],
+  "controlled_attention": [
+    {
+      "band": "较高频 i=0～7",
+      "first_pair": 0,
+      "last_pair": 7,
+      "scores_at_distances": {
+        "0": 0.8361423543074611,
+        "1": 0.9999999999999998,
+        "2": 0.8361423543074618,
+        "3": 0.4391032663448709,
+        "6": -0.2745778580996277,
+        "11": -0.3154001133675908,
+        "101": -0.29631905110345574
+      },
+      "target_probability": 0.7525273723654439,
+      "max_probability": 0.7525273723654439,
+      "min_probability": 2.978637980961688e-08
+    },
+    {
+      "band": "较低频 i=32～39",
+      "first_pair": 32,
+      "last_pair": 39,
+      "scores_at_distances": {
+        "0": 0.9999998273804831,
+        "1": 0.9999999999999998,
+        "2": 0.9999998273804831,
+        "3": 0.9999993095220409,
+        "6": 0.9999956845174802,
+        "11": 0.9999827381374008,
+        "101": 0.9982747042260771
+      },
+      "target_probability": 0.007833052185998555,
+      "max_probability": 0.007833052185998555,
+      "min_probability": 0.007590362157146329
+    }
+  ],
+  "checks": "PASS: explicit rotation matrix, norm preservation, shared shift, cosine identity"
+}

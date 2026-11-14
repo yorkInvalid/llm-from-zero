@@ -11,3 +11,8 @@ dependencies = [
     "tokenizers==0.22.2",
     "torch>=2.14.1",
 ]
+
+[project.optional-dependencies]
+inference = [
+    "transformers==4.57.3",
+]
