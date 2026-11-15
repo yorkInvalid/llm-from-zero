@@ -1,6 +1,8 @@
 # LLM 从零学起：AI 通用能力与面试准备
 
-**2026-11-14 当前模型学习入口：[07 · 第三课：预训练与继续预训练](07-modern-llm/03-pretraining/lesson.ipynb)。** 用随机小型 Qwen3 结构完成书籍文本 A 预训练、保存加载、文本 B 继续预训练和断点恢复，已有本机真实输出与验证曲线。运行前执行 `uv sync --extra inference`；无需下载模型或租 GPU。教师验证不等同用户完成本课。以下旧路线入口保留为历史。
+**第四课配置更新：Qwen3-4B，单张 A800 80GB，LoRA / 全参数 SFT；已完成 A800 上 2 步 LoRA 试跑、60 步训练、保存重载和测试集评估。旧 0.6B MPS 记录为历史结果。**
+
+**2026-11-14 当前模型学习入口：[07 · 第四课：AutoDL 云 GPU SFT](07-modern-llm/04-cloud-sft/lesson.ipynb)。** 已制作回答 loss mask、全参数/LoRA 训练、评估与恢复课件，以及 [AutoDL 操作指南](07-modern-llm/04-cloud-sft/CLOUD_RUN.md)。Qwen3-4B 已在 A800 完成 LoRA 60 步训练及重载评估，实测结果写入课件；费用以 AutoDL 账单为准。
 
 **2026-11-03 当前课程：[第四课 · RAG 检查与有依据的改进](cloud-ai-interview/04-rag-evaluation/LESSON.md)。** 第三课用户自报完成，已有真实模型回答记录；基础云部署/网络按用户选择跳过。下面旧入口与记录保留为历史。
 

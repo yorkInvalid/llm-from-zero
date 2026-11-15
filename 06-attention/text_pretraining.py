@@ -88,6 +88,9 @@ def collate(samples):
 def load_data(directory, context_length, names=('train', 'validation')):
     directory = Path(directory)
     tokenizer = Tokenizer.from_file(str(directory / 'tokenizer.json'))
-    splits = {name: make_windows(json.loads((directory / f'{name}.json').read_text()), tokenizer,
-                                context_length) for name in names}
+    from indexed_tokens import IndexedTokenWindows
+    splits = {name: (IndexedTokenWindows(directory, name, context_length)
+                     if (directory / f'{name}.index.json').exists() else
+                     make_windows(json.loads((directory / f'{name}.json').read_text()), tokenizer,
+                                  context_length)) for name in names}
     return tokenizer, splits

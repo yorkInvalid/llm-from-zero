@@ -42,8 +42,10 @@ class CausalBlock(nn.Module):
 class CausalLM(nn.Module):
     def __init__(self, vocab_size, d_model=64, num_layers=2, num_heads=4,
                  dropout=.1, context_length=64, pad_id=0, norm_style='pre', norm_type='rms',
-                 position_encoding='rope', ffn_type='swiglu'):
+                 position_encoding='rope', ffn_type='swiglu', attention_init='fan_in'):
         super().__init__()
+        if attention_init not in ('legacy', 'fan_in'):
+            raise ValueError('未知的注意力初始化方式')
         if d_model < 1 or num_heads < 1 or d_model % num_heads or num_layers < 1 or context_length < 1:
             raise ValueError('模型维度/层数/上下文长度无效')
         if norm_style not in ('pre', 'post') or norm_type not in ('rms', 'layer'):
@@ -53,7 +55,7 @@ class CausalLM(nn.Module):
         self.config = dict(vocab_size=vocab_size, d_model=d_model, num_layers=num_layers,
                            num_heads=num_heads, dropout=dropout, context_length=context_length, pad_id=pad_id,
                            norm_style=norm_style, norm_type=norm_type,
-                           position_encoding=position_encoding, ffn_type=ffn_type)
+                           position_encoding=position_encoding, ffn_type=ffn_type, attention_init=attention_init)
         self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=pad_id)
         self.input_dropout = nn.Dropout(dropout)
         self.layers = nn.ModuleList([CausalBlock(d_model, num_heads, dropout, norm_style, norm_type,
@@ -61,6 +63,15 @@ class CausalLM(nn.Module):
         norm = RMSNorm if norm_type == 'rms' else nn.LayerNorm
         self.final_norm = norm(d_model) if norm_style == 'pre' else nn.Identity()
         self.lm_head = nn.Linear(d_model, vocab_size)
+        if attention_init == 'fan_in':
+            # Preserve the same random draw; only correct its width-dependent scale.
+            with torch.no_grad():
+                scale = d_model ** -.5 / .1
+                for layer in self.layers:
+                    for group in (layer.attention.W_q, layer.attention.W_k, layer.attention.W_v):
+                        for parameter in group:
+                            parameter.mul_(scale)
+                    layer.attention.W_o.mul_(scale)
 
     def forward(self, ids, *, use_cache=False, kv_cache=None):
         """常规返回 logits；缓存推理返回 (新位置 logits, 逐层缓存)。

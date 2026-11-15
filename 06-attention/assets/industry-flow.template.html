@@ -1,0 +1,58 @@
+<div id="industry-flow">
+  <h2>一篇真实文档如何进入模型</h2>
+  <div class="viz-controls">
+    <label class="form-label">处理步骤<select id="flow-step" class="form-select"></select></label>
+    <button id="flow-prev" class="btn" type="button">上一步</button>
+    <button id="flow-next" class="btn btn-primary" type="button">下一步</button>
+  </div>
+  <div id="flow-content" aria-live="polite"></div>
+</div>
+<style>
+#industry-flow{color:var(--foreground)}
+#industry-flow>*+*{margin-top:calc(var(--font-size-base)*1)}
+#industry-flow .stack{display:grid;gap:calc(var(--font-size-base)*.75)}
+#industry-flow .words{display:flex;flex-wrap:wrap;gap:calc(var(--font-size-base)*.3)}
+#industry-flow .word{padding:calc(var(--font-size-base)*.35);background:color-mix(in srgb,var(--viz-series-1) 12%,transparent);overflow-wrap:anywhere}
+#industry-flow pre{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--foreground)}
+#industry-flow td,#industry-flow th{overflow-wrap:anywhere}
+#industry-flow .matrix td{padding:2px;text-align:center}
+#industry-flow .selected{background:color-mix(in srgb,var(--viz-series-1) 20%,transparent)}
+</style>
+<script id="flow-payload" type="application/json">__PAYLOAD__</script>
+<script>
+(()=>{
+const root=document.getElementById('industry-flow');
+const d=JSON.parse(document.getElementById('flow-payload').textContent);
+const select=root.querySelector('#flow-step'), content=root.querySelector('#flow-content');
+const names=['原始数据','清理与划分','UTF-8 与 BPE','Token 序列','切成上下文窗口','输入与目标错位','Batch 与 Padding','Embedding 与八层模型','因果注意力','概率与交叉熵','反向传播与更新','当前模型续写'];
+select.innerHTML=names.map((n,i)=>`<option value="${i}">${i+1} · ${n}</option>`).join('');
+let step=0,position=0;
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=v=>Number(v).toFixed(4);
+const table=(heads,rows)=>`<div class="table-responsive"><table class="table table-sm"><thead><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+const tokens=(ids)=>`<div class="words">${ids.map((v,i)=>`<span class="word">${i}: ${esc(v)}</span>`).join('')}</div>`;
+function save(){window.openai?.setWidgetState?.({modelContent:{step:names[step],position},privateContent:{step,position}})?.catch(()=>{});}
+function render(){
+ select.value=step;root.querySelector('#flow-prev').disabled=step===0;root.querySelector('#flow-next').disabled=step===names.length-1;
+ let html='';
+ if(step===0)html=`<h3>IndustryCorpus2 · 中文 / high / 人工智能</h3>${table(['字段','样本值'],[['格式','Parquet · text 列用于训练'],['quality_score',d.raw.quality_score],['原文字数',d.raw.text.length],['来源',d.source.shard]])}<label>源文档开头（前 700 字符）</label><pre>${esc(d.raw.text.slice(0,700))}</pre>`;
+ if(step===1)html=`<h3>完整文档去重 → 固定种子打乱 → 80 / 10 / 10</h3>${table(['处理','实际结果'],[['读取范围','一个中文高质量 AI 分片，非全语料随机抽样'],['筛选','200–20000 字符；空白折叠；精确去重'],['训练','320 篇 · 463801 个目标 token'],['验证','40 篇 · 62320 个目标 token'],['测试（本次诊断不读取）','41 篇 · 上次统计 57023 个目标 token'],['分词器','仅用训练集拟合 · 8192 词表'],['当前样本','验证集第 1 篇；未用于拟合 tokenizer']])}<label>清理后的同一文档（前 700 字符）</label><pre>${esc(d.text.slice(0,700))}</pre>`;
+ if(step===2)html=`<h3>Unicode 文本 → UTF-8 字节 → ByteLevel BPE</h3><pre>${esc(d.utf8_text)}</pre>${tokens(d.utf8)}<label>BPE 结果（开头 12 枚；单枚字节片段可能不能独立还原中文）</label>${table(['位置','BPE 内部表示','单枚解码','ID'],d.tokens.slice(1,13).map((t,i)=>[i+1,t,d.decoded[i+1],d.ids[i+1]]))}`;
+ if(step===3)html=`<h3>BOS → 正文 tokens → EOS</h3>${table(['项目','数值'],[['正文 token 数',d.ids.length-2],['BOS / EOS / PAD','1 / 2 / 0'],['实际序列长度',d.ids.length]])}<label>序列开头 24 枚</label>${tokens(d.ids.slice(0,24))}<label>序列末尾 8 枚</label>${tokens(d.ids.slice(-8))}`;
+ if(step===4)html=`<h3>上下文 256 · 同一文档保留在同一集合</h3>${table(['窗口','原序列起点','输入长度','首输入 ID','末标签 ID'],d.windows.map((w,i)=>[i,w.start,w.length,w.input[0],w.labels.at(-1)]))}<label>相邻窗口共享边界 token 作输入；每个下一 token 目标只计一次。仅文档末尾有 EOS。</label>`;
+ if(step===5)html=`<h3>input = piece[:-1] · labels = piece[1:]</h3>${table(['位置','输入文本','input ID','下一 token（目标）','label ID'],d.rows.slice(0,16).map(r=>[r.position,d.decoded[r.position],r.input_id,r.label,r.label_id]))}`;
+ if(step===6){const len=d.batch.input[0].length;html=`<h3>同一文档的首窗口 + 末窗口 → batch [2, ${len}]</h3>${table(['样本','有效长度','末 12 个 input ID','末 12 个 label ID'],d.batch.input.map((r,i)=>[i,d.batch.lengths[i],r.slice(-12).join(', '),d.batch.labels[i].slice(-12).join(', ')]))}<label>右侧 PAD 输入=0；PAD 标签=-100，不计算 loss。PAD key 不参与注意力。</label>`;}
+ if(step===7)html=`<h3>ID → 查表 [2,256,512] → 转置 → 8 个 block → logits [2,256,8192]</h3><label>真实 Embedding 数值：前 6 token × 前 6 维（512 维中的切片）</label>${table(['token','d0','d1','d2','d3','d4','d5'],d.embedding.slice(0,6).map((r,i)=>[d.decoded[i],...r.slice(0,6).map(f)]))}<label>每层：RMSNorm → RoPE 因果注意力 → 残差 → RMSNorm → SwiGLU → 残差</label>${table(['层','输出形状','输出 RMS'],d.layers.map(r=>[r.layer,r.shape.join(' × '),f(r.rms)]))}`;
+ if(step===8){const p=Math.min(position,15);const mask=table(['key / query',...Array.from({length:16},(_,i)=>i)],Array.from({length:16},(_,k)=>[k,...Array.from({length:16},(_,q)=>k<=q?'○':'×')]));html=`<h3>第 1 层 / 第 1 头 · 前 16 个位置</h3><label>○ 可读取 · × 未来屏蔽；行=key，列=query</label>${mask}<label class="form-label">Query 位置 ${p}<input id="position" class="form-range" type="range" min="0" max="15" value="${p}"></label>${table(['Key 位置','token','可见','对当前 query 的实际权重'],d.attention.map((r,i)=>[i,d.decoded[i],i<=p?'是':'未来 · 屏蔽',r[p].toFixed(6)]))}`;}
+ if(step===9){const r=d.rows[position];html=`<h3>真实前缀条件下的下一 token 预测</h3><label class="form-label">输入位置 ${position}<input id="position" class="form-range" type="range" min="0" max="31" value="${position}"></label>${table(['项目','数值'],[['输入 ID',r.input_id],['真实目标',r.label+' · ID '+r.label_id],['目标概率',(r.true_probability*100).toFixed(3)+'%'],['该位置 loss = -ln(p)',f(r.loss)],['完整 batch 平均 loss',f(d.batch_loss)],['有效标签数',d.valid_labels]])}${table(['Top 5 token','ID','概率'],r.predictions.map(v=>[v.text,v.id,(v.probability*100).toFixed(3)+'%']))}`;}
+ if(step===10)html=`<h3>loss → backward → 梯度 → optimizer.step</h3>${table(['阶段','实际数值'],[['教学单步 loss',f(d.update_demo.loss)],['Embedding 梯度范数',f(d.update_demo.embedding_gradient_norm)],['一次 Adam 更新后的变化范数',f(d.update_demo.embedding_update_norm)],['实验范围','在内存副本上更新；未覆盖训练权重；eval 模式关闭 dropout']])}`;
+ if(step===11)html=`<h3>当前最佳权重 · 贪心生成 32 枚 token</h3>${d.predictions.map(p=>`<label>${esc(p.prompt)}</label><pre>${esc(p.text)}</pre>${table(['下一 token Top 5','概率'],p.top5.map(v=>[v.text,(v.probability*100).toFixed(2)+'%']))}`).join('')}`;
+ content.innerHTML=`<div class="stack">${html}</div>`;
+ const slider=root.querySelector('#position');if(slider)slider.onchange=e=>{position=Number(e.target.value);render();save();};
+}
+select.onchange=()=>{step=Number(select.value);render();save();};
+root.querySelector('#flow-prev').onclick=()=>{step--;render();save();};root.querySelector('#flow-next').onclick=()=>{step++;render();save();};
+function restore(s){const p=s?.privateContent;if(p){step=Math.min(11,Math.max(0,Number(p.step)||0));position=Math.min(31,Math.max(0,Number(p.position)||0));}render();}
+window.addEventListener('openai:set_globals',e=>restore(e.detail?.globals?.widgetState));restore(window.openai?.widgetState);
+})();
+</script>

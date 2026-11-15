@@ -1,0 +1,14 @@
+{
+  "mode": "lora",
+  "steps": 60,
+  "batch_size": 4,
+  "gradient_accumulation": 4,
+  "learning_rate": 0.0001,
+  "max_length": 512,
+  "eval_every": 10,
+  "save_every": 60,
+  "seed": 42,
+  "rank": 16,
+  "alpha": 32,
+  "gradient_checkpointing": true
+}

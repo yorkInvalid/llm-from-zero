@@ -34,14 +34,25 @@ class SwiGLU(nn.Module):
         return self.down(F.silu(self.gate(tokens)) * self.up(tokens)).transpose(-2, -1)
 
 
-def learning_rate_at_step(step, total_steps, warmup_steps, peak_lr, min_ratio=.1):
-    """step 从 1 开始：线性 warmup 至 peak，再 cosine 衰减至 peak*min_ratio。"""
+def learning_rate_at_step(step, total_steps, warmup_steps, peak_lr, min_ratio=.1,
+                          *, schedule='cosine', cooldown_steps=0):
+    """1-based cosine, constant, or warmup-stable-cosine-decay learning rate."""
     if not 1 <= step <= total_steps or not 0 <= warmup_steps < total_steps:
         raise ValueError('学习率步骤范围无效')
     if peak_lr <= 0 or not 0 <= min_ratio <= 1:
         raise ValueError('学习率须为正，最小比例须在 [0,1]')
+    if schedule not in ('cosine', 'constant', 'wsd'):
+        raise ValueError('未知的学习率计划')
+    if schedule == 'constant':
+        return peak_lr
+    if schedule == 'wsd' and not 1 <= cooldown_steps <= total_steps - warmup_steps:
+        raise ValueError('WSD cooldown 步数须为正，且不能与 warmup 重叠')
     if warmup_steps and step <= warmup_steps:
         return peak_lr * step / warmup_steps
+    if schedule == 'wsd':
+        cooldown_start = total_steps - cooldown_steps
+        progress = max(0, step - cooldown_start) / cooldown_steps
+        return peak_lr * (min_ratio + (1 - min_ratio) * .5 * (1 + math.cos(math.pi * progress)))
     first = max(1, warmup_steps)
     progress = (step - first) / max(1, total_steps - first)
     return peak_lr * (min_ratio + (1 - min_ratio) * .5 * (1 + math.cos(math.pi * progress)))

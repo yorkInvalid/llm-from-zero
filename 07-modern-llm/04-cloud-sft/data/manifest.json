@@ -1,0 +1,23 @@
+{
+  "origin": "deterministic synthetic educational examples; no real customer data",
+  "seed": 20261114,
+  "split_rule": "scenario assigned before paraphrase; templates held out by split",
+  "limitations": "synthetic templates; not evidence of real-world extraction quality",
+  "files": {
+    "train": {
+      "rows": 160,
+      "groups": 80,
+      "sha256": "8e879f7a747686e7769261cdadb0a2b5536690fa862c3cba5692ce458eb4664c"
+    },
+    "validation": {
+      "rows": 32,
+      "groups": 16,
+      "sha256": "668c0fc0fa19e78fcbe08186ab2ed59cb719758f0e5eeaae0cf5e4f0ebba9a5e"
+    },
+    "test": {
+      "rows": 32,
+      "groups": 16,
+      "sha256": "5749f091c892e001f99d58a351f53e77bead24140cb009ef4bf3a8d485a40d34"
+    }
+  }
+}

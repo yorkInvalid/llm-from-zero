@@ -1,5 +1,7 @@
 # 07 · 从手写 Transformer 到现代 LLM
 
+**第四课配置更新：Qwen3-4B，单张 A800 80GB，LoRA / 全参数 SFT；已完成 A800 上 2 步 LoRA 试跑、60 步训练、保存重载和测试集评估。旧 0.6B MPS 记录为历史结果。**
+
 我们已有一个能训练、续写、记录指标并使用 KV cache 的小型 CausalLM。现在要解决的问题是：**真实 Qwen 与它到底差在哪些地方？哪些差异属于结构，哪些来自数据和训练？**
 
 第一课从 [lesson.ipynb](lesson.ipynb) 或下面两个命令开始。只读取固定版本配置与运行小矩阵，不加载 0.6B 权重、不调用 API、不产生云费用。无需安装 transformers；已有 PyTorch 环境即可。命令在仓库根目录运行：
@@ -17,6 +19,10 @@
 
 打开 [03 · 预训练与继续预训练](03-pretraining/lesson.ipynb)。在 Mac 上用 125,312 参数的随机 Qwen3 小配置完成真实训练：文本 A 预训练 → 保存与加载 → 文本 B 继续预训练；另行验证精确断点恢复。包含实际梯度、参数变化、验证曲线和续写，运行说明见 [第三课 README](03-pretraining/README.md)。没有加载官方 0.6B 权重进行更新。
 
+## 第四课入口：AutoDL 上的第一次 SFT
+
+打开 [04 · 云 GPU SFT](04-cloud-sft/lesson.ipynb)，按 [AutoDL 操作指南](04-cloud-sft/CLOUD_RUN.md) 上传并运行课件包。提供固定合成数据、全参数/LoRA 配置、训练与评估、TensorBoard 和断点恢复。Qwen3-4B 已在 A800 完成 LoRA 60 步训练及重载评估；全参数配置未执行，费用以实际账单为准。
+
 ## 本章路线
 
 | 小节 | 要回答的问题 | 状态 |
@@ -24,7 +30,7 @@
 | 01 · 真实模型结构对照 | 配置怎样映射到 Attention、FFN、参数和缓存？ | 已制作；用户自报结构课学完 |
 | 02 · 加载小模型推理 | 聊天模板怎样变成输入，如何逐 token 生成、测速度与内存？ | [课件已制作并实测](02-real-inference/lesson.ipynb) |
 | 03 · 预训练与继续预训练 | 文本怎样变成 labels，梯度怎样更新参数，保存后怎样继续学？ | [课件已制作并实测](03-pretraining/lesson.ipynb) |
-| 04 · SFT 与 LoRA | 对话模板、回答 loss mask、参数高效微调是什么？ | 后续 |
+| 04 · 云 GPU SFT 与 LoRA | 对话模板、回答 loss mask、AutoDL 训练与评测是什么？ | [课件与上传包已制作](04-cloud-sft/README.md)，云端待运行 |
 | 05 · CoT 与推理评估 | 中间步骤是否提高正确率，增加多少 token 和延迟？ | 后续 |
 | 06 · RL 与 GRPO | 模型自己生成、评分、更新的循环怎么运行？ | 后续 |
 | 扩展 · MoE / MLA / 蒸馏 / 量化 | 分别改变结构、训练还是部署？ | 按需展开 |

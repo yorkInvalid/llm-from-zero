@@ -659,3 +659,517 @@ with torch.no_grad():
 **上下文窗口的限制：**原来的生成算法在超过 context_length 时截掉最早 token，并把窗口位置重新从零编码。保留语义需要重新计算窗口内各层表示，不能只删掉缓存里最早的 K/V。因此当前在窗口满后每一步重建缓存；未满窗口时才走增量加速。低层 forward 遇到缓存加新输入超长会明确报错，generate 自动重建。进一步做持续滑动缓存需要单独设计模型上下文语义。
 
 测试覆盖新旧结构的 prefill、逐 token 和多 token 解码、PAD 与 batch、RoPE/sin-cos 位置偏移、窗口重建、EOS 停止、模式恢复、缓存隔离及正常训练梯度。以 3-token 提示生成 4 个新 token 为例，未满窗口时实际前向输入长度是 `[3,1,1,1]`，完整重算则为 `[3,4,5,6]`。浮点运算顺序可能产生微小差异，测试比较 logits 的数值容差，并对真实 checkpoint 检查生成 ID 一致性。
+
+## IndustryCorpus2 中文小样本预训练
+
+复用本目录的 `CausalLM`，不加载已有模型权重。需要先在 Hugging Face
+的 `BAAI/IndustryCorpus2` 页面获得访问权限，并在本机 `hf auth login`。
+
+```bash
+uv sync --extra pretraining
+.venv/bin/python 06-attention/prepare_industry.py
+.venv/bin/python 06-attention/train_lm.py train \
+  --data-dir 06-attention/artifacts/book-lm/industry-data \
+  --run-dir 06-attention/artifacts/book-lm/industry-33m-run \
+  --epochs 1 --d-model 512 --num-layers 8 --num-heads 8 \
+  --context-length 256 --batch-size 2 --device mps --learning-rate 0.0003 \
+  --observation-prompts 人工智能 机器学习的主要方法 数据
+.venv/bin/python 06-attention/train_lm.py test \
+  --data-dir 06-attention/artifacts/book-lm/industry-data \
+  --run-dir 06-attention/artifacts/book-lm/industry-33m-run --device mps --batch-size 2
+.venv/bin/python 06-attention/train_lm.py generate \
+  --run-dir 06-attention/artifacts/book-lm/industry-33m-run \
+  --device mps --prompt 人工智能 --max-new-tokens 64
+```
+
+抽样器固定版本和中文 high/人工智能分片，读取其第一个 Parquet row group 的
+text 列；该分片只有一个 row group，所以网络读取规模仍接近一个分片（约 280MB），
+不是只下载最终样本的 2.6MB。清理空白、完整文档去重后，保留 200–20000 字符的文档，
+固定种子打乱，选取累计约 100 万字符。它是单行业试跑样本，不代表整个数据集。
+
+按文档 80/10/10 划分，训练集单独训练 8192 词表 ByteLevel BPE。
+现有窗口逻辑在文档内切分，每篇文档末尾添加 EOS；不将同一文档的不同窗口分到不同集合。
+`source.json` 保存来源版本、抽样规则、原文哈希和文档哈希。
+数据目录已存在时抽样器拒绝覆盖；训练重复实验也应换新的 run-dir。
+
+本次配置为 33,604,096 参数。训练沿用 Adam、梯度裁剪、warmup/cosine、TensorBoard
+和逐轮 HTML 报告。默认模型仍为两层、64 维，旧书籍实验命令保持有效。
+`--observation-prompts` 可指定中文观察提示词。`best.pt` 是推理权重，尚不支持完整断点续训。
+一遍小样本用于验证训练链路和损失变化，不足以训练出通用中文语言模型。
+
+本地训练时同时启动 TensorBoard 并打开浏览器，方便实时观察（用户偏好）：
+
+```bash
+.venv/bin/tensorboard --logdir 06-attention/artifacts/book-lm --host 127.0.0.1 --port 6006 --reload_interval 5
+# 另一个终端（macOS）
+open http://127.0.0.1:6006/
+```
+
+### 判断是否超出词频记忆
+
+```bash
+.venv/bin/python 06-attention/unigram_baseline.py --data-dir 06-attention/artifacts/book-lm/industry-data
+```
+
+基线只在 train 标签上计数、add-one 平滑，不读取测试集。该样本验证 loss 为
+7.6474，第一轮模型为 7.5759，仅略优于不使用上下文的词频预测。
+
+继续训练可使用 `--init-checkpoint <旧run>/best.pt`，保存到新的 run-dir。
+它加载旧模型的结构和权重，要求 tokenizer 哈希和上下文长度一致；优化器和学习率计划
+重新初始化，因此不是精确断点恢复。新 run 的 epoch=0 表示加载后的模型，
+并将其纳入最佳验证 checkpoint 的选择，防止后续训练变差时覆盖更好的起点。
+这次继续训练采用 3 epochs、batch=8、peak lr=0.0003，其余配置与首次一致。
+对比使用验证集和固定生成提示词，不再次使用测试集调参。
+
+追加训练实测（`industry-33m-continue`，同一批文档）：
+
+| 追加轮次 | train loss | validation loss |
+|---|---:|---:|
+| 0（原权重） | 7.5470 | 7.5759 |
+| 1 | 7.4668 | 7.5358 |
+| 2（最佳） | 7.3835 | 7.5097 |
+| 3 | 7.3492 | 7.5121 |
+
+词频基线 validation loss=7.6474。第三遍训练损失继续下降但验证略回升，
+最佳权重选追加第 2 遍；固定提示词续写仍有严重重复，不能把这次损失改善视为
+已经获得流畅中文能力。本次未读取测试集。后续应扩大并清理语料后再评估，
+不优先扩大模型或无限重复这批文档。TensorBoard 对比面板可用根目录 logdir，
+其中 `industry-unigram` 为不使用上下文的水平参考线。
+
+### 进度、耗时与诊断（2026-11-15）
+
+`train_lm.py train` 现在显示 tqdm 总更新步数、epoch、当前 batch loss 和 ETA。
+TensorBoard `time/*` 包含 elapsed_seconds、update_seconds、evaluation_seconds、
+eta_updates_seconds、eta_total_seconds、initial_evaluation_seconds、total_wall_seconds。
+首次完成整轮评估前，ETA 不含评估；之后按已完成轮次的平均评估耗时估计。
+ETA 不保证准确，最终模型恢复与报告生成也会产生额外耗时。
+`time/total_wall_seconds` 是结束时含初始评估的实测总耗时。
+Text 中的 `generation/*`、`current_model/*` 展示生成，`validation/fixed_predictions`
+展示给定真实前缀的预测；它们与自由生成是不同任务。
+
+```bash
+# 查看完整对比面板（6007 未占用时）
+.venv/bin/tensorboard --logdir 06-attention/artifacts/book-lm --host 127.0.0.1 --port 6007
+open http://127.0.0.1:6007/
+# 重现诊断：两组各 160 步，从零初始化；不读取 test，不覆盖原 checkpoint
+.venv/bin/python 06-attention/audit_industry.py --steps 160
+# 导出当前最佳 checkpoint 的真实张量与逐步交互展示
+.venv/bin/python 06-attention/build_industry_flow.py
+```
+
+可视化输出为 `output/industry-flow/flow.html`；模板位于 `assets/industry-flow.template.html`。
+依赖预先生成的 industry-data 与 industry-33m-continue/best.pt。
+首次重建若未保存原文样本，会读取固定源分片并匹配验证集第一篇文档。
+显示原文、清理、字节/BPE、完整序列、256-token 窗口、标签右移、padding、
+Embedding 数值、8 层输出、因果遮罩、Top-5 概率和逐位置 loss。
+反向传播演示只更新内存副本，绝不覆盖 checkpoint。
+
+**诊断证据与局限：**
+
+- train/validation 全量分词还原一致、标签右移和窗口目标覆盖检查通过；无完全重复文档。
+  这不代表已排除近重复、模板文本或语料质量问题。
+- 独立 SDPA 对照验证了注意力前向与输入梯度；修改未来输入时，过去输出差异为 0。
+- 旧注意力所有投影固定 std=0.1。扩到 512 维时，第一层 score std=4.918，
+  注意力分支 RMS=3.799，而残差输入 RMS=0.989。8 层后初始化输出 RMS=11.312。
+- 仅将注意力投影改为 std=1/sqrt(d_model)，其他随机参数、训练批次和 dropout 种子一致，
+  score std=0.960，第一层分支 RMS=0.241，8 层输出 RMS=1.793。
+  160 步后，同一固定 32 窗口验证探针（7703 个目标 token），旧方案 loss=7.6853，
+  新方案=7.4233。仅单种子短实验，不能当作完整验证集或多种子结论。
+- 新增 `--attention-init fan_in`，仅用于新训练。新训练默认 fan_in；显式 legacy 可复现历史行为。
+  checkpoint 保存配置；旧 checkpoint 无该字段仍按 legacy 加载。
+  加载旧权重时此选项不会重置已训练参数，验证新初始化需另开从零训练实验。
+- 当前模型的上下文探针（107 个验证位置）完整前缀 loss=7.5549，仅当前 token 为 7.7422。
+  表明模型使用了一些上下文，但样本有限，且自由续写仍严重重复。
+- 训练目标中逗号占约 7.4%，因此只猜逗号也有接近模型的 token accuracy。
+  抽查源文档本身即使用英文逗号，不是本地分词把中文标点损坏。
+- 320 篇、46 万目标 token、单一行业且仅 256 上下文，仍不足以支撑该模型的通用中文能力。
+  当前空白折叠会丢失段落格式；过滤只覆盖长度与精确重复，尚无近重复或模板清理。
+
+先前将主要原因归于数据量不足的解释不完整；初始化随扩模失衡已有直接对照证据。
+建议先以 fan_in 做同数据完整训练对照，再扩大和清理语料，不通过改变解码规则掩盖重复。
+
+### 修正初始化后的完整试跑
+
+新建 `CausalLM` 和 CLI 新训练现在均默认 `attention_init=fan_in`，注意力投影
+标准差为 `1/sqrt(d_model)`。底层教学用 `MultiHeadAttention` 保留原行为。
+加载历史 checkpoint 时，缺失的 `attention_init` 明确补为 `legacy`，随后加载全部权重；
+不会重初始化已训练的参数。需要复现旧实验时显式传 `--attention-init legacy`。
+
+```bash
+.venv/bin/python -u 06-attention/train_lm.py train \
+  --data-dir 06-attention/artifacts/book-lm/industry-data \
+  --run-dir 06-attention/artifacts/book-lm/industry-33m-fanin-run \
+  --epochs 4 --d-model 512 --num-layers 8 --num-heads 8 \
+  --attention-init fan_in --context-length 256 --batch-size 8 \
+  --device mps --learning-rate 0.0003 \
+  --observation-prompts 人工智能 机器学习的主要方法 数据
+```
+
+这次从零训练，保持语料、词表、模型规模不变，完整验证集每轮评估，测试集不参与。
+与历史实验的对比不是严格的单变量消融：历史记录为 batch=2 的一遍训练，
+加上重置优化器后 batch=8 的三遍训练；本次为连续四遍 batch=8、一个学习率计划。
+初始化的单变量证据来自前面的 160 步双组对照，而本次用于验证完整训练效果。
+
+完整试跑结果（fan_in，4 遍）：
+
+| 轮次 | train loss | validation loss | validation token accuracy |
+|---|---:|---:|---:|
+| 1 | 7.3337 | 7.4224 | 7.92% |
+| 2 | 6.6060 | 6.9207 | 9.10% |
+| 3 | 6.0679 | 6.6772 | 9.93% |
+| 4（最佳） | 5.8505 | 6.6021 | 10.41% |
+
+历史最佳 validation loss=7.5097、PPL=1825.7；新版为 6.6021、PPL=736.6。
+训练与轮末评估/报告约 642.6 秒，不含初始评估。没有重新使用测试集。
+自由生成仍重复：例如“机器学习的主要方法,在深度学习中,数据,数据,…”；
+损失改善不等于能流畅续写。训练和验证差距已扩大，下一步优先改善数据而非盲目加轮数。
+
+`industry-33m-fanin-run/best.pt` 保存第 4 遍权重；同目录有 `report.json`、
+`observations.json`、`training_observation.html`、`train.log` 和 TensorBoard 日志。
+
+```bash
+.venv/bin/python 06-attention/compare_industry_runs.py
+```
+
+对照摘要位于 `artifacts/book-lm/industry-comparison/summary.json`，TensorBoard
+`industry-comparison/*` 中使用 `*_by_tokens_seen` 标签，横轴为累计训练目标 token 数。
+历史 batch 与优化器计划不同的限制仍然适用。
+
+### V100 云端扩展语料训练（自有模型）
+
+`expand_industry.py` 固定 IndustryCorpus2 revision，选 AI、教育、科技、新闻四个中文
+high 分片中的首个 row group，按每域约 250 万字符抽样。保留原 8192 词表不重新训练，
+继续使用自己的 8 层、512 维、33,604,096 参数模型，不下载第三方模型权重。
+
+v2 训练集 4,656 篇 / 7,291,108 个目标 token（约原数据的 15.7 倍）；混合验证集
+200 篇 / 313,654 个目标 token；`validation_legacy.json` 保留原 40 篇用于同口径对照。
+原 test 保留且不参与调参。过滤包含长度、中文占比、替换字符、严重长句重复、
+忽略空白/标点/大小写后的精确去重，以及对留出集的 100 字符长片段保守排除。
+这仍不等于全面语义去重或全库代表性采样，数据清理继续折叠空白。
+
+每次训练使用新 run-dir。`--run-label`、`--run-note` 写入 TensorBoard Text 的
+`run/description`；configuration 和 run.json 保存数据版本/哈希、分词器哈希、
+初始权重哈希、代码哈希、训练起点、模型配置、GPU、精度与时间。
+`run/status` 标记 running/completed/failed，run/result 给出最佳验证结果。
+普通异常会记录 failed；进程被系统强杀时状态可能停在 running，需结合进程/日志判断。
+历史 Mac 实验已补写明确标记（`label_industry_history.py`），原曲线不变。
+
+云端已验证 Python 3.12 / torch 2.8.0+cu128 / V100-SXM2-32GB。
+使用镜像自带 CUDA PyTorch 与 `--system-site-packages` venv，不同步 Mac 的 uv.lock。
+依赖见 requirements-cloud.txt。新增 `--device cuda --precision fp16`；训练前向混合精度、
+FP32 参数与 Adam 状态、GradScaler、先 unscale 再裁剪梯度，非有限梯度降 scale 重试，
+最多 8 次；实际更新后才推进进度。验证和生成仍为 FP32，保证前后评估口径一致。
+
+隔离测速（随机 token，同架构/256 上下文/Adam/梯度裁剪，预热 3 步后测 4 步）：
+
+| 设备 / 精度 | batch | token/s | 峰值 allocated 显存 GiB |
+|---|---:|---:|---:|
+| M1 Pro / FP32 | 8 | 4,410 | — |
+| V100 / FP32 | 8 | 9,931 | 1.61 |
+| V100 / FP32 | 32 | 29,413 | 5.25 |
+| V100 / FP32 | 64 | 34,842 | 10.09 |
+| V100 / FP32 | 96 | 36,926 | 14.93 |
+| V100 / FP32 | 128 | 37,518 | 19.79 |
+| V100 / FP16 | 32 | 32,148 | 5.27 |
+| V100 / FP16 | 64 | 53,469 | 10.06 |
+| V100 / FP16 | 96 | 58,464 | 14.84 |
+| V100 / FP16 | 128 | 61,228 | 19.63 |
+
+同条件 FP32 batch8 约 2.25 倍；选择 FP16 batch128 后相对 Mac 原配置探针吞吐
+约 13.9 倍，不是端到端训练加速倍数。首轮受并行 CPU 单测干扰的测速已弃用。
+实际选择以吞吐、稳定性和余量为准，非占满显存。batch 变化同时改变每遍更新次数，
+不能把硬件吞吐提升当作同等模型质量提升。
+
+正式命令保存在 cloud_run_v100.sh：从 Mac fan_in 最佳权重继续 1 遍，batch128，
+FP16，学习率 1e-4；优化器重新初始化。云端工作目录 `/root/autodl-tmp/ownlm-industry-v2`。
+
+当前 SSH（实例更换后需更新 host/port）：
+
+```bash
+ssh -i ~/.ssh/llm_from_zero_autodl_20261114 -p 57901 root@region-41.seetacloud.com
+# 查看云端训练日志
+ssh -i ~/.ssh/llm_from_zero_autodl_20261114 -p 57901 root@region-41.seetacloud.com \
+  'tail -f /root/autodl-tmp/ownlm-industry-v2/train-v2.log'
+# 如现有隧道断开，在 Mac 重建（本地 6008 须空闲）
+ssh -N -i ~/.ssh/llm_from_zero_autodl_20261114 -p 57901 \
+  -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 \
+  -L 127.0.0.1:6008:127.0.0.1:6006 root@region-41.seetacloud.com
+```
+
+浏览器访问 http://127.0.0.1:6008/ 。云端 TensorBoard 用
+`/root/autodl-tmp/ownlm-venv/bin/python -m tensorboard.main --logdir runs --host 127.0.0.1 --port 6006`。
+面板含历史 Mac 记录、性能探针、真实语料短跑及正式训练的独立标记。
+
+V100 首轮正式结果：FP16 batch128，241 次更新，约 130 秒完成参数更新；
+含初始全量评估、训练和末尾评估/报告共 302.3 秒。真实训练约 5.6 万有效 token/s，
+观察到 GPU 利用率约 100%、显存占用约 22GB；AMP 溢出重试总计 0。
+
+| 评估集合（均 FP32） | 训练前 loss | 训练后 loss | 训练后 token accuracy |
+|---|---:|---:|---:|
+| v2 四领域验证（200 篇） | 6.7398 | 6.2262 | 12.64% |
+| 原 AI 验证（40 篇） | 6.6021 | 6.3283 | 11.72% |
+
+未使用测试集调参。贪心续写仍重复“人工智能”“数据”等词语，不能把 loss 下降
+等同于流畅生成。新旧数据验证均改善，比单看混合验证集数字更有解释力。
+下载记录保存在 `artifacts/book-lm/industry-v100-results/04-v100-v2-continue-fanin-fp16-b128/`，
+包括 best.pt、run.json、report.json、observations.json、legacy-validation-comparison.json 和日志。
+Mac 的 `~/.ssh/config` 已添加 `ownlm-v100` 别名，可用 `ssh ownlm-v100` 连接。
+SSH key/账户信息没有打进训练包；云实例训练完成后仍保持开机供查看 TensorBoard。
+
+### 每 50 步验证与完整断点续训
+
+追加实验 `05-v100-v2-continue-3ep-eval50` 的命令见 `cloud_continue_v100.sh`。
+保持自有模型、数据和词表，从 04 最佳权重追加 3 遍（723 次更新）。04 仅保存了权重，
+因此本轮明确重置 Adam 和学习率计划；05 开始保存完整训练状态。
+
+TensorBoard 选择 `05-v100-v2-continue-3ep-eval50/tensorboard`：
+
+| 标签 | 频率 | 含义 |
+|---|---|---|
+| `optimization/loss` | 每 10 步 | 当前随机 batch 的训练损失，Dropout 开启，会波动 |
+| `train_probe/loss` | 每 50 步及轮末 | 固定 512 个训练窗口，关闭 Dropout，用于与验证趋势对照 |
+| `validation/loss` | 每 50 步及轮末 | 完整混合验证集，最佳模型选择依据 |
+| `train/loss` | 每遍结束 | 完整训练集评估，仍然是稀疏的点 |
+| `time/eta_total_seconds` | 每 10 步 | 估算剩余更新、周期检查和轮末评估时间；先测到相应开销才计入 |
+| `time/total_wall_seconds` | 结束时 | 本次运行耗时，包含初始评估、训练、检查、保存及报告 |
+
+Text 中 `generation/prompt_*` 每次检查保留相同提示词的贪心续写。
+`validation_checks.json` 保存密集评估点，`observations.json` 和 HTML 报告保留整轮快照。
+之前一遍训练的 `train/loss` 只有起点和终点，因此连起来是直线；调低 TensorBoard
+平滑只能显示原始记录值，不能补出未记录的中间点。
+
+`best.pt` 用于推理，按完整验证集最低 loss 选取，可能在轮内。
+`last.pt` 每次检查原子替换，包含当前权重、Adam、GradScaler、固定学习率计划、
+随机数状态、下一批索引、历史指标及最佳权重。训练批次顺序由 seed 和 epoch 确定；
+评估前后保存并恢复随机状态，避免检查频率扰动 Dropout 序列。
+
+如果 05 **尚未完成就被中断**，在云端使用新的空目录恢复，保持原来的 3 遍总计划：
+
+```bash
+cd /root/autodl-tmp/ownlm-industry-v2
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /root/autodl-tmp/ownlm-venv/bin/python -u train_lm.py train \
+  --data-dir data --run-dir runs/05-resumed \
+  --resume-checkpoint runs/05-v100-v2-continue-3ep-eval50/last.pt \
+  --context-length 256 --device cuda --precision fp16 --batch-size 128 \
+  --epochs 3 --learning-rate 0.0001 --eval-every 50 --train-probe-windows 512 \
+  --run-label '05 · 中断后完整恢复' \
+  --observation-prompts 人工智能 机器学习的主要方法 数据 科学研究的意义
+```
+
+恢复校验数据/词表哈希、总更新次数、学习率计划、batch、设备和精度等配置。
+已完成计划后要新增训练，使用 `--init-checkpoint best.pt` 开始新计划，会重置优化器。
+`--stop-after-step N` 供主动保存中途断点；该运行标为 paused。
+同一环境的小模型端到端测试验证：连续训练与中断恢复的参数、Adam、GradScaler、
+随机状态和验证结果一致；CPU 和 V100 FP16 均通过。跨硬件或库版本不承诺逐位一致。
+
+05 实验完成：18 个验证检查点，最佳为 step 723（第 3 遍末尾）。
+
+| 指标 | 追加训练前 | 追加训练后 |
+|---|---:|---:|
+| 全量 train loss | 6.1414 | 5.5345 |
+| v2 混合 validation loss | 6.2262 | 5.7104 |
+| v2 validation perplexity | 505.84 | 302.00 |
+| v2 validation token accuracy | 12.64% | 15.36% |
+| 原 AI validation loss（同一 40 篇） | 6.3283 | 5.9051 |
+| 原 AI validation token accuracy | 11.72% | 13.86% |
+
+三遍末尾的混合 validation loss 分别为 5.9255、5.7569、5.7104，未观察到反弹，
+但每遍收益减小，且后期学习率也在降低。固定提示词贪心生成仍严重重复，例如
+“人工智能(AI)人工智能(AI)…”和“机器学习的主要方法,是机器学习,深度学习,算法,算法,…”。
+这说明真实前缀下的预测改善，但自由生成尚未过关，不能仅凭这些结果判定瓶颈只有数据量。
+本次没有使用测试集。
+
+参数更新约 392.3 秒；初始全量评估约 86.2 秒，周期检查和保存约 188.6 秒，
+轮末全量评估和保存约 262.8 秒，总计训练/评估/报告约 931.9 秒（15.5 分钟）。
+更新阶段约 5.6 万有效 token/s，AMP 溢出重试为 0。
+频繁评估用于观察这次短实验，其开销不能算成 GPU 更新吞吐下降。
+
+本轮实际代码保存在结果目录 `code/`，对应 run.json 中的训练源文件哈希。
+运行后改进了下一次运行的 ETA：用初始全量评估估算首遍后的评估开销，
+并隐藏 tqdm 自带的另一套剩余时间，进度条统一看 `ETA=`。
+本地 120 项测试通过，V100 FP16 完整恢复测试通过。
+
+结果目录：`artifacts/book-lm/industry-v100-results/05-v100-v2-continue-3ep-eval50/`。
+包含最佳权重、完整断点、全部评估点、前后续写对照、TensorBoard、日志和代码快照。
+原 AI 验证与续写对照可由 `evaluate_industry_continuation.py` 重现。
+
+### 1 亿 token 新语料实验（v3 / run 06）
+
+`prepare_industry_100m.py` 在固定 IndustryCorpus2 revision 上构建新的训练样本，
+AI、教育、科技、新闻各 25,000,000 个目标 token，共 62,533 篇文档、421,560 个窗口。
+相对 v2 排除旧训练文档的规范化精确重复；保留 v2 的 tokenizer、混合验证、原 AI
+验证和 test 原始文件及哈希。此过滤不等于语义近重复去重。
+
+数据构建命令（输出目录必须是新目录）：
+
+```bash
+.venv/bin/python 06-attention/prepare_industry_100m.py \
+  --previous-data 06-attention/artifacts/book-lm/industry-expanded-v2 \
+  --output 06-attention/artifacts/book-lm/industry-expanded-v3-100m
+```
+
+保留原质量过滤，并对留出集建立所有 50 字符规范化片段：训练候选每隔 50 字符
+取片段检查，因此任意共有的 100 字符连续段都会被排除，也可能保守排除更短的模板句。
+每个领域最后一篇只取满足 token 预算的真实前缀，不人为补 EOS。训练目标总数恰好
+100,000,000，包含自然文档结束的 EOS，不包含 padding。
+
+`indexed_tokens.py` 将 token 存为 uint32 文件，窗口位置和长度存为 NumPy 索引，
+训练时通过 mmap 按需转换当前 batch。保持原来的文档边界、BOS/EOS 和向右错位标签；
+不会把整份数据展开成大量常驻 PyTorch 张量。原始入选文本、来源位置和实际使用长度
+保存在 `training_documents.jsonl.gz`；`source.json` 记录采样/过滤/哈希，`audit.json`
+记录核对结果。257 篇抽查文档重新分词与二进制内容一致；全部留出文件/词表哈希一致。
+
+云端启动命令见 `cloud_100m_v100.sh`。继续使用 8 层、512 维、33,604,096 参数的
+自有模型，V100 FP16 / batch128 / context256，训练一遍、3294 次更新。
+从 05 的 last.pt 开始（已确认它也对应最佳 step723），保留 Adam 和 GradScaler；
+为新增预算设置新的学习率计划，峰值 1e-4、warmup 3%、余弦下降到 1e-5。
+
+`--init-checkpoint ... --keep-optimizer-state` 表示保留权重与优化器，开始新计划；
+`--resume-checkpoint ...` 表示恢复同一计划，要求数据与预算等配置一致。
+`--no-full-train-eval` 关闭全量训练集评估，避免扩大语料后反复扫描整个训练集。
+本次训练指标为固定 1024 个窗口的 `train_probe/loss`，没有全量 `train/loss`；
+每 250 步及轮末评估完整混合验证集、生成固定提示词结果并原子保存完整断点。
+
+TensorBoard 选择 `06-v100-v3-100m-1ep-fp16-b128/tensorboard`，关注：
+
+- `validation/loss`、`train_probe/loss`：模型质量趋势。
+- `progress/train_tokens_seen`、`progress/token_fraction`：成功更新实际使用的 token 数与预算比例。
+- `optimization/tokens_per_second`：更新阶段吞吐；`time/eta_total_seconds`：估计剩余时间。
+- Text 的 `run/description`、`configuration`、`generation/prompt_*`：实验条件与续写。
+
+```bash
+ssh ownlm-v100 'tail -f /root/autodl-tmp/ownlm-industry-v2/train-v4-100m.log'
+```
+
+如果这次实验被中断，用新的空 run-dir 恢复，保留同一计划参数：
+
+```bash
+cd /root/autodl-tmp/ownlm-industry-v2
+OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /root/autodl-tmp/ownlm-venv/bin/python -u train_lm.py train \
+  --data-dir data-v3-100m --run-dir runs/06-resumed \
+  --resume-checkpoint runs/06-v100-v3-100m-1ep-fp16-b128/last.pt \
+  --context-length 256 --device cuda --precision fp16 --batch-size 128 \
+  --epochs 1 --learning-rate 0.0001 --warmup-ratio 0.03 \
+  --eval-every 250 --train-probe-windows 1024 --no-full-train-eval \
+  --run-label '06 · 1亿token实验 · 完整恢复' \
+  --observation-prompts 人工智能 机器学习的主要方法 数据 科学研究的意义
+```
+
+06 已完成：实际成功更新使用 **100,000,000 个目标 token**，3294 次更新，
+最佳验证为最后一步。训练、评估、保存及报告共约 **2030 秒（33.8 分钟）**，
+不含语料构建、上传和结果下载。参数更新阶段约 1812 秒，吞吐约 5.52 万有效 token/s；
+AMP 溢出重试为 0。Adam 步数从 723 接续至 4017，完整断点保存了优化器、
+GradScaler、随机状态及下一个数据位置。
+
+| 指标（固定词表与评估数据） | 训练前 | 训练后 |
+|---|---:|---:|
+| 混合 validation loss | 5.7104 | 4.8828 |
+| 混合 validation perplexity | 302.00 | 132.00 |
+| 混合 validation token accuracy | 15.36% | 21.58% |
+| 固定训练 probe loss（1024 窗口） | 5.6993 | 4.8194 |
+| 原 AI validation loss（40 篇） | 5.9051 | 5.1179 |
+| 原 AI validation token accuracy | 13.86% | 18.98% |
+
+15 个原始检查点见结果目录的 `validation_progress.png`，可用
+`plot_training_checks.py <run-dir>` 重绘；没有平滑。验证与固定训练 probe 同步下降，
+这轮没有明显的验证反弹。曲线后期趋缓，同时学习率也在降低，不能仅据此判定模型
+已到容量上限，也不能把小 probe 与验证的差距视为全量训练/验证差距。测试集未用于评估。
+
+自由生成仍未过关。`generation-modes-comparison.json` 对照 05/06 最佳模型，在
+同样 6 个提示词上分别进行贪心和固定种子采样（temperature=0.8、top-p=0.9、
+seed=42、最多新增 64 token，不加重复惩罚）。贪心续写仍严重循环；采样有较完整的
+局部句子，但仍存在语义、事实及重复问题。例如训练后贪心会输出
+“人工智能(AI)是AI(AI)的\"AI+AI+AI+…”；采样也会输出“学生是学习的一个班级”。
+这组小样例不能代表全面能力，低重复率也不等于流畅或正确。
+
+因此，本轮支持“增加新数据能改善未见文本预测”，尚不足以认定具备可靠问答能力。
+可以把当前权重作为后续小规模 SFT 对照实验的起点，但本轮没有启动 SFT 或追加训练。
+TensorBoard 的 Text → `run/conclusion` 已记录结果与限制；
+`generation_comparison/prompt_*` 展示 05/06 的贪心与采样续写对照。
+
+结果目录：`artifacts/book-lm/industry-v100-results/06-v100-v3-100m-1ep-fp16-b128/`。
+模型、完整断点、数据审计、TensorBoard、生成对照和日志均已保留；本机两个权重文件
+与云端 SHA-256 一致，训练核心代码快照哈希一致，详见 `local-verification.json`。
+本地 124 项测试通过；V100 上 3 项完整恢复测试通过，包含索引数据与优化器接续。
+云端训练进程已结束，实例保留开机供查看 TensorBoard。
+
+### 学习率对照与新增 2 亿 token（runs 07–10）
+
+用户授权在离开的一小时多内持续实验。`cloud_loss_experiments.py` 在云端依次执行
+三档学习率对照，再接续新语料训练。每档从 06 的同一完整断点开始，保留 Adam 和
+GradScaler，使用相同随机种子和 400 个 batch，各处理 12,113,685 个目标 token。
+短测用恒定学习率，每 200 步验证，按第 400 步完整验证 loss 选取配置。
+
+| Run | 学习率 | 第 400 步验证 loss |
+|---|---:|---:|
+| 07 | 5e-5 | 4.848635 |
+| 08 | 1e-4 | 4.827792 |
+| 09 | 2e-4 | 4.795015 |
+
+三档的起点验证 loss 均为 4.882830。07–09 的 paused 状态表示按计划在 400 步
+结束短测，完整训练计划在元数据中保留，便于恢复。三个分支共消耗 36,341,055 个
+训练目标 token，主模型接续其中 09 分支。
+
+10 使用 `industry-expanded-v4-200m`，四个领域各 5000 万目标 token，共 125,547
+篇文档、843,391 个窗口。构建时额外用 `--exclude-data industry-expanded-v3-100m`
+排除 v3 文档精确重复，继续使用 v2 词表与留出集。完整审计核对目标计数、文档哈希、
+旧训练集排除、文件哈希和 token ID 范围，另抽查 257 篇重新分词及留出集片段过滤。
+上传后云端再次核对数据哈希，写入 READY.json 后进入训练。
+
+10 从 09 的 last.pt 继续，保留优化器状态，峰值学习率 2e-4，3% warmup，
+一遍 cosine 下降至 2e-5。每 500 步评估完整验证集和固定 1024 个训练窗口。
+TensorBoard 选择 `10-v100-fresh200m-selected-lr/tensorboard`，Text 中
+`run/learning_rate_comparison` 记录选择依据。云端 `loss-experiments-state.json`
+记录当前运行和对照结果，每轮拥有独立日志与完整断点。
+
+10 已完成 6589 次更新，实际处理 200,000,000 个目标 token。主训练与检查共
+3839 秒（64.0 分钟），最佳为最后一步。相对 06，混合验证 loss 从 4.882830
+降至 4.160423，PPL 从 132.00 降至 64.10，下一 token 准确率从 21.58% 升至
+29.34%。相对本轮实际起点 09，验证 loss 从 4.795015 降至 4.160423。
+训练 probe 从 4.758376 降至 4.089226。AMP 重试累计为 0。
+
+| 固定验证领域 | 06 loss | 10 loss |
+|---|---:|---:|
+| AI（原有与新增验证共 80 篇） | 5.058748 | 4.331885 |
+| 教育（40 篇） | 4.747239 | 4.036237 |
+| 科技（40 篇） | 4.843018 | 4.086245 |
+| 新闻（40 篇） | 4.705481 | 4.011490 |
+
+固定生成样例保存在 `generation-modes-comparison.json`。部分句子变得更完整，
+贪心与采样续写仍出现重复和语义问题。验证指标改善与自由生成能力需分别观察。
+本机 best.pt、last.pt 的 SHA-256 与云端一致，43 个训练源文件快照哈希核对通过，
+完整断点中的 Adam 步数为 11006。`loss_and_learning_rate.png` 展示原始验证检查点
+和实际学习率计划，虚线标记后续对照的第 5500 步起点。
+
+用户询问后期曲线变缓是否值得停训，因此保留 5500 步完整断点并完成原计划。
+当时学习率已从峰值 2e-4 降至约 3.3e-5。4000–5000 步验证 loss 从 4.229034
+降至 4.188843，固定训练 probe 也同步改善。当前记录支持继续获得小幅收益，
+学习率变化对下降速度的具体贡献需要对照确认。
+
+相关研究通过实验讨论 cosine 周期长度及最终衰减阶段对模型质量的影响。
+其结果用于设计后续对照，具体收益由本项目实测决定。
+[Hägele 等，NeurIPS 2024](https://arxiv.org/html/2405.18392v3)
+[Wen 等，ICLR 2025](https://arxiv.org/html/2410.05192v3)
+
+`compare_plateau_schedules.py` 已完成两个受控分支。它们从第 5500 步的同一完整断点
+恢复权重、Adam、GradScaler 和随机状态，使用相同的后续 500 批数据，各处理
+15,216,560 个目标 token。11 复现原 cosine 计划。12 使用 1e-4 学习率训练 400 步，
+再用 100 步 cosine 衰减到与 11 相同的结束学习率 2.37448e-5。每 100 步完整验证。
+
+| 方案 | 第 6000 步验证 loss | PPL | token accuracy |
+|---|---:|---:|---:|
+| 11 原计划复现 | 4.168433 | 64.6141 | 29.280% |
+| 12 提高学习率后衰减 | 4.170248 | 64.7315 | 29.206% |
+
+11 与原训练第 6000 步的验证 loss 完全一致，复现误差为 0。两组 AMP 重试均为 0，
+各耗时约 291 秒。12 初期 loss 上升至 4.189436，最终恢复至 4.170248，
+比原计划高约 0.001815。本次短期调整没有带来优势，差距很小，结论限于这个起点、
+随机状态、数据顺序和 500 步预算。继续采用主训练最后一步的 4.160423 权重。
+
+后期斜率本身不足以定位瓶颈。固定训练 probe 和验证同步改善，四领域验证均有收益，
+现有观察支持继续学习但收益递减。更长的学习率计划、语料质量和模型容量对收益的
+贡献还需要独立对照。此前“可以立即分析”的判断应与“是否提前停训”的决策分别论证。
+
+11/12 的 `diagnostic.pt` 保存权重、优化器和随机状态，后续可通过
+`--init-checkpoint ... --keep-optimizer-state` 开始新计划。其短期自定义调度已经完成。
+结果同时保存到主实验的 `plateau-schedule-comparison.json` 和各自 TensorBoard 中。

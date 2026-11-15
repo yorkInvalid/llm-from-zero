@@ -28,3 +28,7 @@ __pycache__/
 
 # Local pretraining lesson checkpoints (keep small reports in assets)
 07-modern-llm/03-pretraining/artifacts/
+
+# Cloud SFT checkpoints, optimizer states and local upload bundles
+07-modern-llm/04-cloud-sft/runs/
+07-modern-llm/04-cloud-sft/dist/

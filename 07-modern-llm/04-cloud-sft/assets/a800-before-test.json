@@ -1,0 +1,647 @@
+{
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.8.0+cu128",
+    "cuda_runtime": "12.8",
+    "device": "cuda",
+    "compute_dtype": "bfloat16",
+    "model_id": "Qwen/Qwen3-4B",
+    "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+    "data_hash": "888c5c6e2213831f84b4eea04dcf73b307fc0b70de7af7ba6ff270456d71450b",
+    "packages": {
+      "transformers": "4.57.3",
+      "tokenizers": "0.22.2",
+      "peft": "0.17.1",
+      "accelerate": "1.10.1"
+    },
+    "gpu": "NVIDIA A800-SXM4-80GB",
+    "gpu_memory_gib": 79.249755859375,
+    "bf16_supported": true
+  },
+  "split": "test",
+  "ids": [
+    "test-000-0",
+    "test-000-1",
+    "test-001-0",
+    "test-001-1",
+    "test-002-0",
+    "test-002-1",
+    "test-003-0",
+    "test-003-1",
+    "test-004-0",
+    "test-004-1",
+    "test-005-0",
+    "test-005-1",
+    "test-006-0",
+    "test-006-1",
+    "test-007-0",
+    "test-007-1",
+    "test-008-0",
+    "test-008-1",
+    "test-009-0",
+    "test-009-1",
+    "test-010-0",
+    "test-010-1",
+    "test-011-0",
+    "test-011-1",
+    "test-012-0",
+    "test-012-1",
+    "test-013-0",
+    "test-013-1",
+    "test-014-0",
+    "test-014-1",
+    "test-015-0",
+    "test-015-1"
+  ],
+  "checkpoint": null,
+  "generation": {
+    "max_new_tokens": 128,
+    "do_sample": false,
+    "enable_thinking": false
+  },
+  "metrics": {
+    "count": 32,
+    "json_valid_rate": 1.0,
+    "schema_valid_rate": 1.0,
+    "exact_match_rate": 0.875,
+    "field_accuracy": 0.96875
+  },
+  "predictions": [
+    {
+      "id": "test-000-0",
+      "text": "最终确认如下——产品还没定，数量和单位还没定，收货城市待确认。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": null,
+        "quantity": null,
+        "unit": null,
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": null,\n  \"quantity\": null,\n  \"unit\": null,\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-000-1",
+      "text": "订单信息请从这里提取：交付地点要求收货城市待确认；需要的东西是产品还没定；本次量为数量和单位还没定。",
+      "target": {
+        "product": null,
+        "quantity": null,
+        "unit": null,
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": null,\n  \"quantity\": null,\n  \"unit\": null,\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-001-0",
+      "text": "最终确认如下——台灯，1870件，送到南京。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "台灯",
+        "quantity": 1870,
+        "unit": "件",
+        "delivery_city": "南京"
+      },
+      "prediction": "{\n  \"product\": \"台灯\",\n  \"quantity\": 1870,\n  \"unit\": \"件\",\n  \"delivery_city\": \"南京\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-001-1",
+      "text": "订单信息请从这里提取：交付地点要求送到南京；需要的东西是台灯；本次量为1870件。",
+      "target": {
+        "product": "台灯",
+        "quantity": 1870,
+        "unit": "件",
+        "delivery_city": "南京"
+      },
+      "prediction": "{\n  \"product\": \"台灯\",\n  \"quantity\": 1870,\n  \"unit\": \"件\",\n  \"delivery_city\": \"南京\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-002-0",
+      "text": "最终确认如下——雨伞，376套，送到青岛。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "雨伞",
+        "quantity": 376,
+        "unit": "套",
+        "delivery_city": "青岛"
+      },
+      "prediction": "{\n  \"product\": \"雨伞\",\n  \"quantity\": 376,\n  \"unit\": \"套\",\n  \"delivery_city\": \"青岛\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-002-1",
+      "text": "订单信息请从这里提取：交付地点要求送到青岛；需要的东西是雨伞；本次量为376套。",
+      "target": {
+        "product": "雨伞",
+        "quantity": 376,
+        "unit": "套",
+        "delivery_city": "青岛"
+      },
+      "prediction": "{\n  \"product\": \"雨伞\",\n  \"quantity\": 376,\n  \"unit\": \"套\",\n  \"delivery_city\": \"青岛\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-003-0",
+      "text": "最终确认如下——蓝牙耳机，1654件，送到厦门。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "蓝牙耳机",
+        "quantity": 1654,
+        "unit": "件",
+        "delivery_city": "厦门"
+      },
+      "prediction": "{\n  \"product\": \"蓝牙耳机\",\n  \"quantity\": 1654,\n  \"unit\": \"件\",\n  \"delivery_city\": \"厦门\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-003-1",
+      "text": "订单信息请从这里提取：交付地点要求送到厦门；需要的东西是蓝牙耳机；本次量为1654件。",
+      "target": {
+        "product": "蓝牙耳机",
+        "quantity": 1654,
+        "unit": "件",
+        "delivery_city": "厦门"
+      },
+      "prediction": "{\n  \"product\": \"蓝牙耳机\",\n  \"quantity\": 1654,\n  \"unit\": \"件\",\n  \"delivery_city\": \"厦门\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-004-0",
+      "text": "最终确认如下——帆布袋，1663套，送到合肥。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "帆布袋",
+        "quantity": 1663,
+        "unit": "套",
+        "delivery_city": "合肥"
+      },
+      "prediction": "{\n  \"product\": \"帆布袋\",\n  \"quantity\": 1663,\n  \"unit\": \"套\",\n  \"delivery_city\": \"合肥\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-004-1",
+      "text": "订单信息请从这里提取：交付地点要求送到合肥；需要的东西是帆布袋；本次量为1663套。",
+      "target": {
+        "product": "帆布袋",
+        "quantity": 1663,
+        "unit": "套",
+        "delivery_city": "合肥"
+      },
+      "prediction": "{\n  \"product\": \"帆布袋\",\n  \"quantity\": 1663,\n  \"unit\": \"套\",\n  \"delivery_city\": \"合肥\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-005-0",
+      "text": "最终确认如下——键盘，1485件，收货城市待确认。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "键盘",
+        "quantity": 1485,
+        "unit": "件",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"键盘\",\n  \"quantity\": 1485,\n  \"unit\": null,\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": false,
+        "correct_fields": 3
+      }
+    },
+    {
+      "id": "test-005-1",
+      "text": "订单信息请从这里提取：交付地点要求收货城市待确认；需要的东西是键盘；本次量为1485件。",
+      "target": {
+        "product": "键盘",
+        "quantity": 1485,
+        "unit": "件",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"键盘\",\n  \"quantity\": 1485,\n  \"unit\": null,\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": false,
+        "correct_fields": 3
+      }
+    },
+    {
+      "id": "test-006-0",
+      "text": "最终确认如下——鼠标，611个，送到青岛。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "鼠标",
+        "quantity": 611,
+        "unit": "个",
+        "delivery_city": "青岛"
+      },
+      "prediction": "{\n  \"product\": \"鼠标\",\n  \"quantity\": 611,\n  \"unit\": \"个\",\n  \"delivery_city\": \"青岛\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-006-1",
+      "text": "订单信息请从这里提取：交付地点要求送到青岛；需要的东西是鼠标；本次量为611个。",
+      "target": {
+        "product": "鼠标",
+        "quantity": 611,
+        "unit": "个",
+        "delivery_city": "青岛"
+      },
+      "prediction": "{\n  \"product\": \"鼠标\",\n  \"quantity\": 611,\n  \"unit\": \"个\",\n  \"delivery_city\": \"青岛\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-007-0",
+      "text": "最终确认如下——水杯，数量和单位还没定，送到合肥。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "水杯",
+        "quantity": null,
+        "unit": null,
+        "delivery_city": "合肥"
+      },
+      "prediction": "{\"product\": \"水杯\", \"quantity\": null, \"unit\": null, \"delivery_city\": \"合肥\"}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-007-1",
+      "text": "订单信息请从这里提取：交付地点要求送到合肥；需要的东西是水杯；本次量为数量和单位还没定。",
+      "target": {
+        "product": "水杯",
+        "quantity": null,
+        "unit": null,
+        "delivery_city": "合肥"
+      },
+      "prediction": "{\"product\": \"水杯\", \"quantity\": null, \"unit\": null, \"delivery_city\": \"合肥\"}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-008-0",
+      "text": "最终确认如下——充电器，798套，送到宁波。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "充电器",
+        "quantity": 798,
+        "unit": "套",
+        "delivery_city": "宁波"
+      },
+      "prediction": "{\n  \"product\": \"充电器\",\n  \"quantity\": 798,\n  \"unit\": \"套\",\n  \"delivery_city\": \"宁波\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-008-1",
+      "text": "订单信息请从这里提取：交付地点要求送到宁波；需要的东西是充电器；本次量为798套。",
+      "target": {
+        "product": "充电器",
+        "quantity": 798,
+        "unit": "套",
+        "delivery_city": "宁波"
+      },
+      "prediction": "{\n  \"product\": \"充电器\",\n  \"quantity\": 798,\n  \"unit\": \"套\",\n  \"delivery_city\": \"宁波\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-009-0",
+      "text": "最终确认如下——水杯，1765个，送到西安。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "水杯",
+        "quantity": 1765,
+        "unit": "个",
+        "delivery_city": "西安"
+      },
+      "prediction": "{\n  \"product\": \"水杯\",\n  \"quantity\": 1765,\n  \"unit\": \"个\",\n  \"delivery_city\": \"西安\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-009-1",
+      "text": "订单信息请从这里提取：交付地点要求送到西安；需要的东西是水杯；本次量为1765个。",
+      "target": {
+        "product": "水杯",
+        "quantity": 1765,
+        "unit": "个",
+        "delivery_city": "西安"
+      },
+      "prediction": "{\n  \"product\": \"水杯\",\n  \"quantity\": 1765,\n  \"unit\": \"个\",\n  \"delivery_city\": \"西安\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-010-0",
+      "text": "最终确认如下——文件夹，1070个，收货城市待确认。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "文件夹",
+        "quantity": 1070,
+        "unit": "个",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"文件夹\",\n  \"quantity\": 1070,\n  \"unit\": \"个\",\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-010-1",
+      "text": "订单信息请从这里提取：交付地点要求收货城市待确认；需要的东西是文件夹；本次量为1070个。",
+      "target": {
+        "product": "文件夹",
+        "quantity": 1070,
+        "unit": "个",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"文件夹\",\n  \"quantity\": 1070,\n  \"unit\": \"个\",\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-011-0",
+      "text": "最终确认如下——产品还没定，973套，送到宁波。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": null,
+        "quantity": 973,
+        "unit": "套",
+        "delivery_city": "宁波"
+      },
+      "prediction": "{\"product\": null, \"quantity\": 973, \"unit\": null, \"delivery_city\": \"宁波\"}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": false,
+        "correct_fields": 3
+      }
+    },
+    {
+      "id": "test-011-1",
+      "text": "订单信息请从这里提取：交付地点要求送到宁波；需要的东西是产品还没定；本次量为973套。",
+      "target": {
+        "product": null,
+        "quantity": 973,
+        "unit": "套",
+        "delivery_city": "宁波"
+      },
+      "prediction": "{\n  \"product\": null,\n  \"quantity\": 973,\n  \"unit\": null,\n  \"delivery_city\": \"宁波\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": false,
+        "correct_fields": 3
+      }
+    },
+    {
+      "id": "test-012-0",
+      "text": "最终确认如下——水杯，501个，送到西安。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "水杯",
+        "quantity": 501,
+        "unit": "个",
+        "delivery_city": "西安"
+      },
+      "prediction": "{\n  \"product\": \"水杯\",\n  \"quantity\": 501,\n  \"unit\": \"个\",\n  \"delivery_city\": \"西安\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-012-1",
+      "text": "订单信息请从这里提取：交付地点要求送到西安；需要的东西是水杯；本次量为501个。",
+      "target": {
+        "product": "水杯",
+        "quantity": 501,
+        "unit": "个",
+        "delivery_city": "西安"
+      },
+      "prediction": "{\n  \"product\": \"水杯\",\n  \"quantity\": 501,\n  \"unit\": \"个\",\n  \"delivery_city\": \"西安\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-013-0",
+      "text": "最终确认如下——雨伞，1648个，送到成都。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "雨伞",
+        "quantity": 1648,
+        "unit": "个",
+        "delivery_city": "成都"
+      },
+      "prediction": "{\n  \"product\": \"雨伞\",\n  \"quantity\": 1648,\n  \"unit\": \"个\",\n  \"delivery_city\": \"成都\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-013-1",
+      "text": "订单信息请从这里提取：交付地点要求送到成都；需要的东西是雨伞；本次量为1648个。",
+      "target": {
+        "product": "雨伞",
+        "quantity": 1648,
+        "unit": "个",
+        "delivery_city": "成都"
+      },
+      "prediction": "{\n  \"product\": \"雨伞\",\n  \"quantity\": 1648,\n  \"unit\": \"个\",\n  \"delivery_city\": \"成都\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-014-0",
+      "text": "最终确认如下——充电器，数量和单位还没定，送到深圳。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "充电器",
+        "quantity": null,
+        "unit": null,
+        "delivery_city": "深圳"
+      },
+      "prediction": "{\n  \"product\": \"充电器\",\n  \"quantity\": null,\n  \"unit\": null,\n  \"delivery_city\": \"深圳\"\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-014-1",
+      "text": "订单信息请从这里提取：交付地点要求送到深圳；需要的东西是充电器；本次量为数量和单位还没定。",
+      "target": {
+        "product": "充电器",
+        "quantity": null,
+        "unit": null,
+        "delivery_city": "深圳"
+      },
+      "prediction": "{\"product\": \"充电器\", \"quantity\": null, \"unit\": null, \"delivery_city\": \"深圳\"}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-015-0",
+      "text": "最终确认如下——文件夹，1379套，收货城市待确认。旧记录写了3件，以本次确认为准。",
+      "target": {
+        "product": "文件夹",
+        "quantity": 1379,
+        "unit": "套",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"文件夹\",\n  \"quantity\": 1379,\n  \"unit\": \"套\",\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    },
+    {
+      "id": "test-015-1",
+      "text": "订单信息请从这里提取：交付地点要求收货城市待确认；需要的东西是文件夹；本次量为1379套。",
+      "target": {
+        "product": "文件夹",
+        "quantity": 1379,
+        "unit": "套",
+        "delivery_city": null
+      },
+      "prediction": "{\n  \"product\": \"文件夹\",\n  \"quantity\": 1379,\n  \"unit\": \"套\",\n  \"delivery_city\": null\n}",
+      "stop_reason": "eos",
+      "score": {
+        "json_valid": true,
+        "schema_valid": true,
+        "exact": true,
+        "correct_fields": 4
+      }
+    }
+  ]
+}

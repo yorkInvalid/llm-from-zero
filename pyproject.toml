@@ -10,9 +10,19 @@ dependencies = [
     "tensorboard>=2.20,<3",
     "tokenizers==0.22.2",
     "torch>=2.14.1",
+    "tqdm>=4.67,<5",
 ]
 
 [project.optional-dependencies]
 inference = [
     "transformers==4.57.3",
+]
+sft = [
+    "accelerate==1.10.1",
+    "peft==0.17.1",
+    "transformers==4.57.3",
+]
+pretraining = [
+    "huggingface-hub>=0.34,<1",
+    "pyarrow>=18,<27",
 ]

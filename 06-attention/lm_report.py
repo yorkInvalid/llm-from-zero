@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 
-def write_observation_report(directory, history, observations, best_epoch):
+def write_observation_report(directory, history, observations, best_epoch, train_label='train'):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), constrained_layout=True)
@@ -16,7 +16,8 @@ def write_observation_report(directory, history, observations, best_epoch):
     for ax, metric, title in zip(axes, ('loss', 'perplexity', 'token_accuracy'),
                                 ('Cross-entropy loss', 'Perplexity (log scale)', 'Token accuracy')):
         for split in ('train', 'validation'):
-            ax.plot(epochs, [item[split][metric] for item in history], marker='o', label=split)
+            ax.plot(epochs, [item[split][metric] for item in history], marker='o',
+                    label=train_label if split == 'train' else split)
         ax.axvline(best_epoch, color='gray', linestyle=':', label='best checkpoint')
         if metric == 'perplexity':
             ax.set_yscale('log')
@@ -66,11 +67,14 @@ summary{cursor:pointer;font-weight:600}table{border-collapse:collapse;width:100%
 td,th{border:1px solid #dce3ea;padding:8px;text-align:left;vertical-align:top}th{background:#edf3f9}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#edf3f9;padding:12px}.scroll{overflow-x:auto}
 </style><h1>语言模型训练观察</h1>
-<p>Epoch 0 是随机初始化。所有轮次使用相同验证窗口、相同提示词、贪心解码和最多 32 个新 token；观察时关闭梯度与 Dropout。</p>
+<p>Epoch 0 是本次运行的起始模型（可能为随机初始化或加载的权重）。所有轮次使用相同验证窗口、相同提示词、贪心解码和最多 32 个新 token；观察时关闭梯度与 Dropout。</p>
 <h2>怎么看曲线</h2><p>训练和验证 loss 一起下降：对未训练段落的预测正在改善。
 训练 loss 下降但验证 loss 上升：可能过拟合。困惑度等于 exp(loss)，不是准确率。
 验证采用真实前缀，续写采用模型自己的前缀，两种表现不能直接等同。</p>
 <img src="curves.png" alt="训练与验证损失、困惑度和 token 准确率曲线">
-<p>模型选择只依据全验证集 loss。测试集不用于逐轮观察；下方文字展示的是各轮模型，未统一替换成最佳模型。</p>
+<p>模型选择只依据全验证集 loss；最佳点可能位于轮内检查，下方只展示整轮快照。测试集不用于逐轮观察；下方文字展示的是各轮模型，未统一替换成最佳模型。</p>
 <h2>逐轮对照（点击展开）</h2>''' + ''.join(sections) + '</html>'
+    if train_label == 'train_probe':
+        document = document.replace('<h2>怎么看曲线</h2>',
+            '<p><strong>本次训练指标为固定训练探针（train_probe），没有计算全量训练集 loss。</strong></p><h2>怎么看曲线</h2>')
     (directory / 'training_observation.html').write_text(document, encoding='utf-8')

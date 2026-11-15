@@ -1,0 +1,48 @@
+{
+  "kind": "teacher_local_verification_not_cloud_run_or_student_completion",
+  "device": "mps",
+  "steps": 2,
+  "trainable_parameters": 5046272,
+  "validation_before": 0.2802275892453534,
+  "validation_after": 0.06993181640806143,
+  "environment": {
+    "python": "3.12.12",
+    "torch": "2.14.1",
+    "packages": {
+      "transformers": "4.57.3",
+      "tokenizers": "0.22.2",
+      "peft": "0.17.1",
+      "accelerate": "1.10.1"
+    },
+    "model_id": "Qwen/Qwen3-0.6B",
+    "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "data_hash": "888c5c6e2213831f84b4eea04dcf73b307fc0b70de7af7ba6ff270456d71450b"
+  },
+  "evaluation": {
+    "split": "validation",
+    "count": 8,
+    "before": {
+      "count": 8,
+      "json_valid_rate": 1.0,
+      "schema_valid_rate": 1.0,
+      "exact_match_rate": 0.875,
+      "field_accuracy": 0.96875
+    },
+    "after": {
+      "count": 8,
+      "json_valid_rate": 1.0,
+      "schema_valid_rate": 0.875,
+      "exact_match_rate": 0.75,
+      "field_accuracy": 0.84375
+    }
+  },
+  "tests_passed": 7,
+  "cuda_status": "not run; AutoDL GPU, memory and billing remain to be measured",
+  "interpretation": "Two-step integration check only; loss fell but exact match worsened on this fixed 8-example validation subset.",
+  "resume_verified": {
+    "device": "mps",
+    "from_step": 2,
+    "to_step": 3,
+    "status": "completed; not a cross-device bitwise-equivalence claim"
+  }
+}

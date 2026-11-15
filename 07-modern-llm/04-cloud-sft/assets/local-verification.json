@@ -1,0 +1,11 @@
+{
+  "model_id": "Qwen/Qwen3-4B",
+  "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+  "target_device": "A800 80GB × 1",
+  "tokenizer_check": "224 samples; max_length=146; no truncation",
+  "tests": "9 tests: real tokenizer, tiny random models, mocked hardware guards, offline tokenizer regression",
+  "cuda_status": "not run",
+  "weights_downloaded": false,
+  "historical_results": "history-qwen3-0.6b/; not results for 4B",
+  "config_source": "https://huggingface.co/Qwen/Qwen3-4B/blob/1cfa9a7208912126459214e8b04321603b3df60c/config.json"
+}

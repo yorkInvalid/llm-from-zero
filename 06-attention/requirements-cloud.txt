@@ -1,0 +1,6 @@
+# Reuse the image's CUDA-enabled PyTorch (verified: 2.8.0+cu128 on V100).
+# Do not install the Mac root lockfile or replace CUDA PyTorch here.
+tokenizers==0.22.2
+tensorboard>=2.20,<3
+matplotlib>=3.9,<4
+tqdm>=4.67,<5
