@@ -1,5 +1,7 @@
 # 04 · 云 GPU 上的第一次 SFT（AutoDL）
 
+**找 Qwen2.5-7B 的魔搭代码？** 打开[同题双问实验](experiments/qwen25-7b-paired/README.md)：含真实 GPU 脚本、两套冻结数据、逐检查点回答和复跑入口。本页其余内容是原有 Qwen3-4B / A800 课件。
+
 先打开 [lesson.ipynb](lesson.ipynb) 看输入、labels 和训练目标；准备上云时按 [CLOUD_RUN.md](CLOUD_RUN.md) 操作。用户已有 AutoDL 账户，本课不自动创建付费实例。
 
 任务是从合成采购文本抽取四个字段并输出严格 JSON。使用真实 Qwen3-4B，提供全参数 SFT 与 LoRA SFT 配置；先两步试跑，再根据实测选择正式实验。面向单张 A800 80GB：LoRA 基座 BF16，全参数权重/梯度/Adam 状态 FP32，前向使用 BF16 混合精度；均开启梯度检查点，不使用量化。

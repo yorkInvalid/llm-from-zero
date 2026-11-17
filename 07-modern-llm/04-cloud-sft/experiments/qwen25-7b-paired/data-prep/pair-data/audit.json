@@ -1,0 +1,103 @@
+{
+  "control_sha256": "e314fe11f0a578009e67809ec7d67e3c72484756a25e6df50825eba8f41a279e",
+  "treatment_sha256": "911843fd787d5366efc63fd73af290ca40f37cc12da6365ccca898b34afc6965",
+  "validation_sha256": "4647e3ff0315dbedd17495fa7bf3ff6bdf754c7ecf228d97d096e6c33d24a44b",
+  "pair_eval_stems_sha256": "6fa981d14865899a045a024fbb60c1c94023ac22b63b855a1f2b89605dc017ee",
+  "pair_eval_prompts_sha256": "69b73299803a7aad9e98891f0efe3d0df62bd9675e7f5e513a337a0f85fbd0b5",
+  "validation_rows": 120,
+  "pairs": 1095,
+  "rows_changed": 2190,
+  "rows_unchanged": 6810,
+  "removed_content_ids": 1095,
+  "remaining_unique_original_examples": 7905,
+  "full_treatment_prompts": 9000,
+  "families": {
+    "来源单选解析": 913,
+    "古今互译用词核对": 120,
+    "分词与边界核对": 30,
+    "实体位置核验": 12,
+    "日期换算": 12,
+    "四则运算核算": 4,
+    "错字校对": 4
+  },
+  "eight_quarters": [
+    {
+      "quarter": 1,
+      "both_arms_input_supervised_total": [
+        160102,
+        342118,
+        502220
+      ]
+    },
+    {
+      "quarter": 2,
+      "both_arms_input_supervised_total": [
+        157306,
+        338258,
+        495564
+      ]
+    },
+    {
+      "quarter": 3,
+      "both_arms_input_supervised_total": [
+        159619,
+        337107,
+        496726
+      ]
+    },
+    {
+      "quarter": 4,
+      "both_arms_input_supervised_total": [
+        156978,
+        335956,
+        492934
+      ]
+    },
+    {
+      "quarter": 5,
+      "both_arms_input_supervised_total": [
+        155261,
+        340475,
+        495736
+      ]
+    },
+    {
+      "quarter": 6,
+      "both_arms_input_supervised_total": [
+        157560,
+        346089,
+        503649
+      ]
+    },
+    {
+      "quarter": 7,
+      "both_arms_input_supervised_total": [
+        159282,
+        331287,
+        490569
+      ]
+    },
+    {
+      "quarter": 8,
+      "both_arms_input_supervised_total": [
+        161902,
+        335588,
+        497490
+      ]
+    }
+  ],
+  "paired_supervision": {
+    "short_targets": 19579,
+    "reason_targets": 94848
+  },
+  "short_answer_body_token_median": 9,
+  "short_answer_body_token_max": 148,
+  "short_answer_body_le16": 832,
+  "overlap": {
+    "evaluation_cores": 60,
+    "train_and_validation_distinct_normalized_strings": 21056,
+    "flagged": 0,
+    "max_4gram_coverage": 0.18181818181818182,
+    "rule": "NFKC/casefold/alphanumeric. Training and validation prompts and responses vs fresh evaluation stems. Flag identical, full stem >=8 characters, contiguous span >=16, or >=60% unique 4-gram coverage with >=4 matches."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "group": "novel paired-arm responses, identities hidden",
+  "sample": "up to six from each of S/R in P21–P40/P41–P60; excludes all baseline/control texts; same hash rule as control",
+  "n": 15,
+  "three_bits_agree": 13,
+  "differences": [
+    {
+      "key": "P55R_e5c86cfc58138464",
+      "primary": "110",
+      "secondary": "111",
+      "retained": "110",
+      "primary_note": "具体说明N合格，未说明为何排除L和M，尤其未处理等于4的边界。"
+    },
+    {
+      "key": "P46R_019b7795be8daa2e",
+      "primary": "111",
+      "secondary": "110",
+      "retained": "111",
+      "primary_note": "准确改写为没有另行通知就仍在北厅。"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="870" viewBox="0 0 1120 870" role="img" aria-labelledby="title desc">
+<title id="title">Qwen2.5-7B 纯底座如何生成“小面”</title><desc id="desc">上方是从题目到 generate 的调用；中间是下一 token 的循环；下方是真实的前三步与停止情况。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,4 L0,8 Z" fill="#43776d"/></marker></defs>
+<style>text{font-family:"Hiragino Sans GB","PingFang SC","Microsoft YaHei",sans-serif}.num{font-variant-numeric:tabular-nums}</style>
+<rect width="1120" height="870" fill="#f6f6f0"/>
+<text x="42" y="39" font-size="15" font-weight="650" fill="#476b63">P28S   /   木块压强题   /   Qwen2.5-7B Base</text>
+<text x="42" y="95" font-size="38" font-weight="650" fill="#153d37">纯预训练底座怎样生成「小面」？</text>
+<text x="43" y="133" font-size="18" font-weight="400" fill="#153d37">这一题要求只写“大面”或“小面”。下面从评测脚本的一次调用，追到每一步实际生成的 token。</text>
+<text x="42" y="190" font-size="23" font-weight="650" fill="#153d37">01   评测脚本把什么交给模型？</text>
+<rect x="42" y="210" width="224" height="112" rx="12" fill="#ffffff" stroke="#c9d8d1"/>
+<text x="55" y="240" font-size="20" font-weight="650" fill="#153d37">读取底座</text>
+<text x="55" y="273" font-size="16" font-weight="400" fill="#153d37">from_pretrained(…)</text>
+<text x="55" y="300" font-size="14" font-weight="400" fill="#466a62">model = base，未挂 LoRA</text>
+<rect x="291" y="210" width="234" height="112" rx="12" fill="#ffffff" stroke="#c9d8d1"/>
+<text x="304" y="240" font-size="20" font-weight="650" fill="#153d37">包装题目</text>
+<text x="304" y="273" font-size="16" font-weight="400" fill="#153d37">prompt(题目 + 短答指令)</text>
+<text x="304" y="300" font-size="14" font-weight="400" fill="#466a62">结尾留出 assistant 的位置</text>
+<rect x="550" y="210" width="222" height="112" rx="12" fill="#ffffff" stroke="#c9d8d1"/>
+<text x="563" y="240" font-size="20" font-weight="650" fill="#153d37">转成张量</text>
+<text x="563" y="273" font-size="16" font-weight="400" fill="#153d37">tok(…) → input_ids</text>
+<text x="563" y="300" font-size="14" font-weight="400" fill="#466a62">attention_mask 标出有效位置</text>
+<rect x="797" y="210" width="281" height="112" rx="12" fill="#ffffff" stroke="#c9d8d1"/>
+<text x="810" y="240" font-size="20" font-weight="650" fill="#153d37">开始生成</text>
+<text x="810" y="273" font-size="16" font-weight="400" fill="#153d37">model.generate(**inputs, …)</text>
+<text x="810" y="300" font-size="14" font-weight="400" fill="#466a62">贪心解码，上限 256 个新 token</text>
+<path d="M268 265 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M527 265 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M774 265 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<text x="42" y="375" font-size="23" font-weight="650" fill="#153d37">02   generate 内部：每次选一个 token</text>
+<rect x="42" y="397" width="174" height="88" rx="12" fill="#e2efea" stroke="#afcbbf"/>
+<text x="55" y="433" font-size="20" font-weight="650" fill="#153d37">Embedding</text>
+<text x="55" y="463" font-size="15" font-weight="400" fill="#153d37">token ID → 向量</text>
+<rect x="244" y="397" width="266" height="88" rx="12" fill="#e2efea" stroke="#afcbbf"/>
+<text x="257" y="433" font-size="20" font-weight="650" fill="#153d37">28 层 Transformer</text>
+<text x="257" y="463" font-size="15" font-weight="400" fill="#153d37">每层：因果自注意力 + MLP</text>
+<rect x="538" y="397" width="284" height="88" rx="12" fill="#e2efea" stroke="#afcbbf"/>
+<text x="551" y="433" font-size="20" font-weight="650" fill="#153d37">RMSNorm → LM head</text>
+<text x="551" y="463" font-size="15" font-weight="400" fill="#153d37">末位置向量 → 152,064 个分数</text>
+<rect x="850" y="397" width="228" height="88" rx="12" fill="#e2efea" stroke="#afcbbf"/>
+<text x="863" y="433" font-size="20" font-weight="650" fill="#153d37">argmax</text>
+<text x="863" y="463" font-size="15" font-weight="400" fill="#153d37">选分数最高的 token ID</text>
+<path d="M218 441 h23" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M512 441 h23" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M824 441 h23" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M964 486 V512 H128 V488" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<text x="247" y="545" font-size="15" font-weight="400" fill="#466a62">没遇到结束符且未到上限：把刚选的 token 接到上下文，复用 KV 缓存，再走一遍。</text>
+<text x="42" y="604" font-size="23" font-weight="650" fill="#153d37">03   实测：为什么没有停在「小面」？</text>
+<rect x="42" y="625" width="236" height="113" rx="12" fill="#153d37" stroke="none"/>
+<text x="55" y="652" font-size="14" font-weight="400" fill="#ffffff">第 1 步 · 读完整提示</text>
+<text x="55" y="693" font-size="26" font-weight="650" fill="#ffffff">小</text>
+<text x="55" y="720" font-size="15" font-weight="400" fill="#ffffff">ID 30709</text>
+<rect x="303" y="625" width="236" height="113" rx="12" fill="#153d37" stroke="none"/>
+<text x="316" y="652" font-size="14" font-weight="400" fill="#ffffff">第 2 步 · 已生成「小」</text>
+<text x="316" y="693" font-size="26" font-weight="650" fill="#ffffff">面</text>
+<text x="316" y="720" font-size="15" font-weight="400" fill="#ffffff">ID 27091</text>
+<rect x="564" y="625" width="236" height="113" rx="12" fill="#f7ecd7" stroke="none"/>
+<text x="577" y="652" font-size="14" font-weight="400" fill="#553e22">第 3 步 · 已生成「小面」</text>
+<text x="577" y="693" font-size="26" font-weight="650" fill="#553e22">两个换行</text>
+<text x="577" y="720" font-size="15" font-weight="400" fill="#553e22">ID 271</text>
+<rect x="825" y="625" width="253" height="113" rx="12" fill="#f7ecd7" stroke="none"/>
+<text x="838" y="652" font-size="14" font-weight="400" fill="#553e22">第 4 步起 · 继续生成</text>
+<text x="838" y="693" font-size="26" font-weight="650" fill="#553e22">水平、放置、…</text>
+<text x="838" y="720" font-size="15" font-weight="400" fill="#553e22">开始重复题目</text>
+<path d="M280 682 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M541 682 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<path d="M802 682 h20" stroke="#43776d" stroke-width="2.1" stroke-linejoin="round" fill="none" marker-end="url(#arrow)"/>
+<text x="43" y="782" font-size="17" font-weight="650" fill="#153d37">纯底座：生成满 256 个 token 才停。双问 SFT 两轮后：同题前两步不变，第三步选中结束符 151643。</text>
+<text x="43" y="829" font-size="14" font-weight="400" fill="#466a62">来源：experiment.py 的 generate()；P28S 的 base.jsonl 和 epoch-2.jsonl。日志记录了选中的 ID，没有保存各候选的概率。</text>
+</svg>

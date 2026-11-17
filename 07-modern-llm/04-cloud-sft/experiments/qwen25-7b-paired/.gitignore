@@ -1,0 +1,6 @@
+# Output directories in the commands below; frozen inputs and evidence are tracked.
+.venv/
+runs/
+verified-base/
+downloads/
+.*.modelscope-partial/

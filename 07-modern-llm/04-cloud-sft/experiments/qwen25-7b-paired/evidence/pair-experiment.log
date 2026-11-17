@@ -1,0 +1,140 @@
+TRAIN START control 2026-11-16T14:32:51+08:00
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.10s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:12<00:14,  7.21s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:26<00:10, 10.35s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:38<00:00, 11.09s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:38<00:00,  9.72s/it]
+BASE VALIDATION 2.034504870221183
+UPDATE 1 1.1 1.83441
+UPDATE 5 4.0 1.62379
+UPDATE 100 68.0 1.17964
+UPDATE 200 136.6 2.30779
+UPDATE 300 208.5 2.06582
+UPDATE 400 280.3 1.34558
+UPDATE 500 350.5 2.3135
+CHECKPOINT epoch-0.25 validation 1.9827696252912854
+UPDATE 600 421.6 2.43476
+UPDATE 700 492.1 1.32751
+UPDATE 800 563.0 2.5347
+UPDATE 900 632.6 1.25175
+UPDATE 1000 702.8 1.55971
+UPDATE 1100 771.6 1.6009
+CHECKPOINT epoch-0.5 validation 1.9821424201482045
+UPDATE 1200 841.3 1.73148
+UPDATE 1300 911.9 1.96639
+UPDATE 1400 980.6 2.60489
+UPDATE 1500 1050.6 1.38226
+UPDATE 1600 1119.1 0.78423
+CHECKPOINT epoch-0.75 validation 1.9769524592542682
+UPDATE 1700 1190.8 2.56486
+UPDATE 1800 1263.4 2.95184
+UPDATE 1900 1333.3 2.5783
+UPDATE 2000 1400.3 2.36667
+UPDATE 2100 1470.6 1.29158
+UPDATE 2200 1537.1 2.4732
+CHECKPOINT epoch-1 validation 1.978450951833552
+UPDATE 2300 1605.8 0.56928
+UPDATE 2400 1676.6 1.72856
+UPDATE 2500 1744.4 2.22473
+UPDATE 2600 1814.1 1.98199
+UPDATE 2700 1884.3 2.48708
+UPDATE 2800 1955.7 1.09436
+CHECKPOINT epoch-1.25 validation 2.0006908899900333
+UPDATE 2900 2024.7 1.88442
+UPDATE 3000 2097.5 0.42231
+UPDATE 3100 2166.0 0.26517
+UPDATE 3200 2237.9 0.8795
+UPDATE 3300 2308.0 2.08913
+CHECKPOINT epoch-1.5 validation 2.008575040059538
+UPDATE 3400 2379.3 0.64411
+UPDATE 3500 2449.5 2.41908
+UPDATE 3600 2518.3 2.61147
+UPDATE 3700 2589.4 1.8366
+UPDATE 3800 2658.1 0.92276
+UPDATE 3900 2725.9 1.9365
+CHECKPOINT epoch-1.75 validation 2.0113671960248096
+UPDATE 4000 2794.8 1.31108
+UPDATE 4100 2865.2 1.76385
+UPDATE 4200 2933.3 2.43762
+UPDATE 4300 3004.3 1.84485
+UPDATE 4400 3073.5 1.76806
+UPDATE 4500 3145.0 1.06013
+CHECKPOINT epoch-2 validation 2.0141542569711195
+TRAINING COMPLETE 3147.3209812324494
+TRAIN START paired 2026-11-16T20:56:00+08:00
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:04<00:12,  4.20s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:16<00:17,  9.00s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:30<00:11, 11.33s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:42<00:00, 11.46s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:42<00:00, 10.58s/it]
+BASE VALIDATION 2.034504870221183
+UPDATE 1 1.1 1.84238
+UPDATE 5 4.2 1.62358
+UPDATE 100 72.5 1.17654
+UPDATE 200 145.6 2.30543
+UPDATE 300 221.8 2.06574
+UPDATE 400 297.8 1.35578
+UPDATE 500 372.6 2.31405
+CHECKPOINT epoch-0.25 validation 1.9847457697468467
+UPDATE 600 447.8 2.43466
+UPDATE 700 523.1 1.31914
+UPDATE 800 598.3 2.53535
+[W1116 21:09:54.639440595 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 720896, total: 23819976704).
+UPDATE 900 672.2 1.24961
+UPDATE 1000 747.3 1.56656
+UPDATE 1100 820.2 1.59916
+CHECKPOINT epoch-0.5 validation 1.9816936823527254
+UPDATE 1200 894.1 1.61081
+UPDATE 1300 968.3 1.89466
+[W1116 21:15:49.311322961 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 2097152 bytes (free: 720896, total: 23819976704).
+UPDATE 1400 1041.3 2.58305
+UPDATE 1500 1115.7 0.9096
+UPDATE 1600 1188.7 0.79536
+[W1116 21:19:43.780860743 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 4915200, total: 23819976704).
+CHECKPOINT epoch-0.75 validation 1.9794194733695056
+UPDATE 1700 1264.6 2.56908
+[W1116 21:21:36.847852036 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 2097152 bytes (free: 720896, total: 23819976704).
+UPDATE 1800 1341.4 2.95574
+UPDATE 1900 1415.5 2.58511
+[W1116 21:24:22.739084549 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 2097152 bytes (free: 720896, total: 23819976704).
+UPDATE 2000 1486.7 2.33136
+[W1116 21:24:32.818617956 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 13303808, total: 23819976704).
+UPDATE 2100 1561.0 1.03064
+UPDATE 2200 1632.1 2.46999
+CHECKPOINT epoch-1 validation 1.9795108719872718
+UPDATE 2300 1705.6 0.57087
+UPDATE 2400 1780.7 1.73255
+UPDATE 2500 1852.5 2.22709
+UPDATE 2600 1926.9 1.97314
+[W1116 21:32:11.488003850 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 4915200, total: 23819976704).
+UPDATE 2700 2001.3 2.48874
+UPDATE 2800 2077.4 1.14234
+CHECKPOINT epoch-1.25 validation 2.005028023944252
+UPDATE 2900 2150.4 1.88214
+UPDATE 3000 2227.2 0.40134
+UPDATE 3100 2300.3 0.27078
+UPDATE 3200 2376.4 0.86382
+[W1116 21:40:23.329173561 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 4915200, total: 23819976704).
+UPDATE 3300 2451.5 2.09137
+CHECKPOINT epoch-1.5 validation 2.0097805450679025
+UPDATE 3400 2527.0 0.57995
+[W1116 21:42:39.562594945 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 2097152 bytes (free: 720896, total: 23819976704).
+UPDATE 3500 2601.8 2.21285
+[W1116 21:44:09.463988521 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 4915200, total: 23819976704).
+[W1116 21:44:33.294393270 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 2097152 bytes (free: 720896, total: 23819976704).
+UPDATE 3600 2674.8 2.60491
+UPDATE 3700 2750.3 1.72365
+UPDATE 3800 2823.2 0.85333
+[W1116 21:48:36.100897804 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 720896, total: 23819976704).
+UPDATE 3900 2895.2 1.93347
+CHECKPOINT epoch-1.75 validation 2.0154238100036803
+UPDATE 4000 2968.5 1.27738
+UPDATE 4100 3043.3 1.77653
+UPDATE 4200 3115.6 2.44098
+UPDATE 4300 3191.4 1.8467
+UPDATE 4400 3264.9 1.77385
+UPDATE 4500 3340.8 1.04037
+CHECKPOINT epoch-2 validation 2.015034109240473
+TRAINING COMPLETE 3343.210778295994
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:05<00:15,  5.24s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:18<00:19,  9.74s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:31<00:11, 11.48s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:44<00:00, 12.03s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:44<00:00, 11.14s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:13<00:39, 13.27s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:26<00:26, 13.07s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:39<00:13, 13.35s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:51<00:00, 12.55s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:51<00:00, 12.80s/it]
+GENERATED epoch-0.25 120 75.75221167132258
+GENERATED epoch-0.5 120 77.46505117416382
+GENERATED epoch-0.75 120 83.09844868816435
+GENERATED epoch-1 120 108.52541589736938
+GENERATED epoch-1.25 120 75.03316948749125
+GENERATED epoch-1.5 120 80.53808575868607
+GENERATED epoch-1.75 120 90.60862763598561
+GENERATED epoch-2 120 91.055380564183

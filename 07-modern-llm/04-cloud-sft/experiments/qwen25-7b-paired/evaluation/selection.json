@@ -1,0 +1,37 @@
+{
+  "utc": "2026-11-16T14:12:46.028494+00:00",
+  "development_cores": 30,
+  "selection_rule": "most paired passes on 30 development cores; earliest trained checkpoint on tie",
+  "prompt_sha256": "69b73299803a7aad9e98891f0efe3d0df62bd9675e7f5e513a337a0f85fbd0b5",
+  "scored_file_sha256": "d2d74bd643cfef2390dbe743ed7958057bc930aa97b06de39b6002f7d7f72cca",
+  "arms": {
+    "control": {
+      "joint_by_epoch": {
+        "0.25": 5,
+        "0.5": 8,
+        "0.75": 8,
+        "1": 8,
+        "1.25": 4,
+        "1.5": 5,
+        "1.75": 9,
+        "2": 8
+      },
+      "selected_epoch": 1.75,
+      "selected_correct": 9
+    },
+    "paired": {
+      "joint_by_epoch": {
+        "0.25": 7,
+        "0.5": 9,
+        "0.75": 6,
+        "1": 7,
+        "1.25": 6,
+        "1.5": 9,
+        "1.75": 6,
+        "2": 3
+      },
+      "selected_epoch": 0.5,
+      "selected_correct": 9
+    }
+  }
+}

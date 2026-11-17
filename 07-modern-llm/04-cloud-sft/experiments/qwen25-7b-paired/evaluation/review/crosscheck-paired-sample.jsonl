@@ -1,0 +1,15 @@
+{"key": "P35S_ab389627b414e449", "id": "P35S", "mode": "S", "text": "任务：甲乙丙三项工作安排", "auto": [null, null, null]}
+{"key": "P35S_067ed10b9b339c60", "id": "P35S", "mode": "S", "text": "任务名：逻辑推理", "auto": [null, null, null]}
+{"key": "P37R_c2a66025c7acce39", "id": "P37R", "mode": "R", "text": "A. 不能确定；\n\n能确定未达标。因为验收完成，但未说明是否通过，说明未通过。", "auto": [null, null, null]}
+{"key": "P32R_5aee876bbce7d42c", "id": "P32R", "mode": "R", "text": "能，规定表明签字必然导致离场；\n\n因此答案为：A", "auto": [null, null, null]}
+{"key": "P34R_6e9ddeaa3aba706d", "id": "P34R", "mode": "R", "text": "阿宁住乙房。因为阿墨只住乙房，所以阿宁不可能住甲房和乙房，只能住丙房。又因为阿禾不住丙房，所以阿宁住乙房，阿禾住甲房。\n\n因此答案是：阿宁住乙房。", "auto": [null, null, null]}
+{"key": "P21R_0b3db7d83d3e5d3f", "id": "P21R", "mode": "R", "text": "最终的x是15。\n在第一次执行“先将x翻倍，再给x加1”这一组操作后，x的值为3；在第二次执行这一组操作后，x的值为7；在第三次执行这一组操作后，x的值为15。", "auto": [null, null, null]}
+{"key": "P33R_7b6a3313e16d65e6", "id": "P33R", "mode": "R", "text": "4支\n\n最坏的情况是抽了3支，每种颜色一支，再抽1支，就一定有两支同色。\n\n因此，最少抽4支才能保证至少有两支同色。", "auto": [null, null, null]}
+{"key": "P22R_594f20ff71235404", "id": "P22R", "mode": "R", "text": "A\ns[-2:] 从倒数第二个字符开始截取到最后，即 \"on\"；s[:1] 从第一个字符开始截取，即 \"m\"。因此，s[-2:] + s[:1] 的值是 \"nome\"。", "auto": [null, null, null]}
+{"key": "P51S_ab9d47714b0c53f0", "id": "P51S", "mode": "S", "text": "28千米", "auto": [null, null, null]}
+{"key": "P55R_e5c86cfc58138464", "id": "P55R", "mode": "R", "text": "N已付款有3件，满足条件，能打标记。\n故本题选A。", "auto": [null, null, null]}
+{"key": "P52R_205c2f4424e9fcde", "id": "P52R", "mode": "R", "text": "周长为28厘米。因为只剪去右上角一个边长2厘米的小正方形，切口与原边平行，所以剩下图形的周长为6×4-2×2=28厘米。\n因此答案是：28", "auto": [null, null, null]}
+{"key": "P59R_aee07780ca0f713a", "id": "P59R", "mode": "R", "text": "D\n依据：有效卡先扣1点，再检测余额是否小于2；若小于2则亮灯。一张有效卡原有3点。操作后会亮灯。", "auto": [null, null, null]}
+{"key": "P51R_5a34bab351a9f573", "id": "P51R", "mode": "R", "text": "鹿站到松站实际距离为3×4=12千米，松站到湖站实际距离为2×4=8千米，所以从鹿站经松站到湖站，实际走12+8=20千米。\n因此答案是：20千米。", "auto": [null, null, null]}
+{"key": "P46R_019b7795be8daa2e", "id": "P46R", "mode": "R", "text": "北厅\n“除非”是“如果不”的意思，所以这句话的意思是“如果不另行通知，那么仍在北厅集合”。", "auto": [null, null, null]}
+{"key": "P60R_f4cded42a8442dd2", "id": "P60R", "mode": "R", "text": "金色。因为(3,4)的坐标和为奇数，所以是蓝色。向右移动一格后，坐标变为(4,4)，坐标和为8，为偶数，所以是金色。", "auto": [null, null, null]}

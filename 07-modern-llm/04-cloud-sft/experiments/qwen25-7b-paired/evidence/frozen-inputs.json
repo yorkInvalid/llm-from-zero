@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-11-16T14:41:03.334009+08:00",
+  "files": {
+    "pair-analysis/design.json": "5f10ce2bd4772d470f89d69fc5de3053b4e3e5b447c343cce2ec1a2382c907a3",
+    "pair-eval/items.jsonl": "6fa981d14865899a045a024fbb60c1c94023ac22b63b855a1f2b89605dc017ee",
+    "pair-eval/prompts.jsonl": "69b73299803a7aad9e98891f0efe3d0df62bd9675e7f5e513a337a0f85fbd0b5",
+    "pair-eval/SCORING.md": "4daaab61ec9ce2271d96d91d34194e24ce4eb4fdb3dc471c9ebf653eb51f7fd9",
+    "nine-data/train.jsonl": "e314fe11f0a578009e67809ec7d67e3c72484756a25e6df50825eba8f41a279e",
+    "nine-data/validation.jsonl": "4647e3ff0315dbedd17495fa7bf3ff6bdf754c7ecf228d97d096e6c33d24a44b",
+    "pair-data/paired.jsonl": "911843fd787d5366efc63fd73af290ca40f37cc12da6365ccca898b34afc6965",
+    "pair-data/pairs.jsonl": "688190b64e40530dd943b46b6eaabbf102b73f72e5fce0f1d78c056e016a1b0f",
+    "pair-train/experiment.py": "a2de6b419955f00612a05f0a03490da43ad15b6b1c9c62aaaaa8d83b360f9a06",
+    "pair-train/schedule.json": "9b0127e3cf5ccc57775923cf97e3b702c993d177c1902431da597cbea26f6aae"
+  }
+}

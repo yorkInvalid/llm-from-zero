@@ -1,0 +1,96 @@
+{
+  "baseline_sha256": "e314fe11f0a578009e67809ec7d67e3c72484756a25e6df50825eba8f41a279e",
+  "derived_sha256": {
+    "paired.jsonl": "911843fd787d5366efc63fd73af290ca40f37cc12da6365ccca898b34afc6965",
+    "pairs.jsonl": "688190b64e40530dd943b46b6eaabbf102b73f72e5fce0f1d78c056e016a1b0f"
+  },
+  "order_sha256": "a4b86f62b007dc3df909bb7357a0f4ebe1e9e86cb08e55d84ca596c13b8d740e",
+  "schedule_sha256": "9b0127e3cf5ccc57775923cf97e3b702c993d177c1902431da597cbea26f6aae",
+  "pairs": 1095,
+  "by_family": {
+    "来源单选解析": 913,
+    "古今互译用词核对": 120,
+    "分词与边界核对": 30,
+    "日期换算": 12,
+    "实体位置核验": 12,
+    "四则运算核算": 4,
+    "错字校对": 4
+  },
+  "by_quarter": {
+    "1": 279,
+    "2": 283,
+    "3": 244,
+    "4": 289
+  },
+  "by_source": {
+    "法律考试": 352,
+    "传统文化": 211,
+    "综合考试": 470,
+    "中文文本任务": 62
+  },
+  "removed_sources": {
+    "中文文本任务": 728,
+    "传统文化": 92,
+    "财经文本": 157,
+    "法律考试": 38,
+    "逻辑选择": 17,
+    "综合考试": 51,
+    "书影音": 6,
+    "趣味问答": 2,
+    "开发问答": 4
+  },
+  "same_source_count": 152,
+  "unchanged_rows": 6810,
+  "retained_unique_base_items": 7905,
+  "sources_considered": 1314,
+  "quarter_totals": [
+    {
+      "rows": 2250,
+      "input_tokens": 160102,
+      "supervised_tokens": 342118,
+      "total_tokens": 502220
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 157306,
+      "supervised_tokens": 338258,
+      "total_tokens": 495564
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 159619,
+      "supervised_tokens": 337107,
+      "total_tokens": 496726
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 156978,
+      "supervised_tokens": 335956,
+      "total_tokens": 492934
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 155261,
+      "supervised_tokens": 340475,
+      "total_tokens": 495736
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 157560,
+      "supervised_tokens": 346089,
+      "total_tokens": 503649
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 159282,
+      "supervised_tokens": 331287,
+      "total_tokens": 490569
+    },
+    {
+      "rows": 2250,
+      "input_tokens": 161902,
+      "supervised_tokens": 335588,
+      "total_tokens": 497490
+    }
+  ]
+}

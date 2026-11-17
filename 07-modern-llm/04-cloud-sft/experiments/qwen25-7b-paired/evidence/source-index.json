@@ -1,0 +1,25 @@
+{
+  "download": "pair-measurements.tar.gz",
+  "sha256": "afee891d4d73602bc2122d483a433fac84ea9e8f464a542d7f6add14b26b4409",
+  "cloud_members": {
+    "experiment.py": "a2de6b419955f00612a05f0a03490da43ad15b6b1c9c62aaaaa8d83b360f9a06",
+    "run-pair.sh": "c33c230b8a98e70d18ca9abe6cd8ace1e8a5ea705cf7f152c24a837aea32b869",
+    "pack.py": "c00045035834f4e009bd7d9ccb4b40dc63baa670c84c89ba2d3a092a9edd3f8f",
+    "schedule.json": "9b0127e3cf5ccc57775923cf97e3b702c993d177c1902431da597cbea26f6aae",
+    "prompts.jsonl": "69b73299803a7aad9e98891f0efe3d0df62bd9675e7f5e513a337a0f85fbd0b5"
+  },
+  "submission_only": {
+    "status.py": {
+      "from": "pair-control-kit.tar.gz",
+      "kit_sha256": "cf277c0441af58b7b4965a6aceca9a12ee7a19fd34c18f9d623a85e6c4e015e8",
+      "member": "status.py",
+      "sha256": "c257c9b9841013e30f4a14bab40c4286d34d1724386a1bad5e3646b7d972d165"
+    },
+    "early-control.sh": {
+      "from": "pair-eval-input.tar.gz",
+      "kit_sha256": "c55ac2eb974f07e36b08be4d5cff52dd343c41038516a684a029872223625d08",
+      "member": "early-control.sh",
+      "sha256": "23b8756bb29d18e8f88be35eba4e95ebbfa462c04f11e566af4dc8f25a815d6f"
+    }
+  }
+}

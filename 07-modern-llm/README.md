@@ -23,6 +23,8 @@
 
 打开 [04 · 云 GPU SFT](04-cloud-sft/lesson.ipynb)，按 [AutoDL 操作指南](04-cloud-sft/CLOUD_RUN.md) 上传并运行课件包。提供固定合成数据、全参数/LoRA 配置、训练与评估、TensorBoard 和断点恢复。Qwen3-4B 已在 A800 完成 LoRA 60 步训练及重载评估；全参数配置未执行，费用以实际账单为准。
 
+[魔搭 Qwen2.5-7B 同题双问实验](04-cloud-sft/experiments/qwen25-7b-paired/README.md) 收录了从 A10 回传的训练、推理和启动脚本，以及两组每四分之一轮的结果。可以先在 CPU 上读木块压强题的逐 token 原始输出。
+
 ## 本章路线
 
 | 小节 | 要回答的问题 | 状态 |

@@ -1,0 +1,107 @@
+{
+  "control-epoch-0.25.tar.gz": {
+    "bytes": 223310167,
+    "sha256": "d071e444f019bb02ec1276ece84c210b46dec4180e45e495116f8dc0a6f1fe45",
+    "verified": true
+  },
+  "control-epoch-0.5.tar.gz": {
+    "bytes": 223133314,
+    "sha256": "6f3e8ae3e405f39ea0caf0bc0618b57a5ed2b5c59ca4d27d41369472ea224d4c",
+    "verified": true
+  },
+  "control-epoch-0.75.tar.gz": {
+    "bytes": 223028699,
+    "sha256": "254bb9dbb4552a857b3cfd15fd8efc32f60757b60961d4fa8fbfd6974f01cd49",
+    "verified": true
+  },
+  "control-epoch-1.25.tar.gz": {
+    "bytes": 223184310,
+    "sha256": "02aefcce3689fca630f53c9e5effe72ae323449f5e5a0f036f24cd050cfe9182",
+    "verified": true
+  },
+  "control-epoch-1.5.tar.gz": {
+    "bytes": 223177746,
+    "sha256": "0c1b4aa9089ea64c0588b12904d37d0b475118f94af07b0788e34e577186295d",
+    "verified": true
+  },
+  "control-epoch-1.75.tar.gz": {
+    "bytes": 223191488,
+    "sha256": "af6fa416b91d135477e4538783b503009b6d277108fe61741fb06f76fac5f065",
+    "verified": true
+  },
+  "control-epoch-1.tar.gz": {
+    "bytes": 223069482,
+    "sha256": "5b82958236c81b16ac79b61cee29d1a426f17cc3070c6e6a91d7441380c230be",
+    "verified": true
+  },
+  "control-epoch-2.tar.gz": {
+    "bytes": 223197402,
+    "sha256": "0d8e2a0fe11d5cfd40974598ba0970e80a0097752008bede4204f58f55196b3c",
+    "verified": true
+  },
+  "control-measurements.tar.gz": {
+    "bytes": 606262,
+    "sha256": "8ac0178529fd841b32723296f6be9c0f06095034402d25f6ef2f75454aa60fe8",
+    "verified": true
+  },
+  "pair-measurements.tar.gz": {
+    "bytes": 1661183,
+    "sha256": "afee891d4d73602bc2122d483a433fac84ea9e8f464a542d7f6add14b26b4409",
+    "verified": true
+  },
+  "paired-epoch-0.25.tar.gz": {
+    "bytes": 223325808,
+    "sha256": "89cd847709d861bbcc9e70c16bf23b03622d4a692944eb1c6413d45fd86c0271",
+    "verified": true
+  },
+  "paired-epoch-0.5.tar.gz": {
+    "bytes": 223139625,
+    "sha256": "21a866a03e966db633426a807c71bdf79da47959fe00d9610096042320ce4736",
+    "verified": true
+  },
+  "paired-epoch-0.75.tar.gz": {
+    "bytes": 223044851,
+    "sha256": "5c6321ac498a7302fb8468261ee0df23b8bb77f3ba2122d187b1353fedf2508c",
+    "verified": true
+  },
+  "paired-epoch-1.25.tar.gz": {
+    "bytes": 223181467,
+    "sha256": "85117867ca51750e2c6e61dc719c462f6c87b139e133c05f84fbd6cb5418eb0f",
+    "verified": true
+  },
+  "paired-epoch-1.5.tar.gz": {
+    "bytes": 223180320,
+    "sha256": "dd9db991b9633ba8521cae4e9e3bcef13874f6c8fd26599c9db48e7505895847",
+    "verified": true
+  },
+  "paired-epoch-1.75.tar.gz": {
+    "bytes": 223201457,
+    "sha256": "468994f383bc5738e40e4a8dc6592f62c7d43a77a4489a86843f203d549e032b",
+    "verified": true
+  },
+  "paired-epoch-1.tar.gz": {
+    "bytes": 223099019,
+    "sha256": "54000f764275943b0eacb7bd62199e17dacd8580fbccedeeb5d7bd84f9d94615",
+    "verified": true
+  },
+  "paired-epoch-2.tar.gz": {
+    "bytes": 223206091,
+    "sha256": "5a52b86d8c81928bba5557aa107343d7affef8f9dd92b816b694ba16041c2a26",
+    "verified": true
+  },
+  "paired-generations-2.tar.gz": {
+    "bytes": 41820,
+    "sha256": "118f8dbe27b6eb5642f1208f6774db80aa745f76909895b49e378a6e9ddb09f8",
+    "verified": true
+  },
+  "paired-generations-4.tar.gz": {
+    "bytes": 84099,
+    "sha256": "28a0db9847ee1c4f0b73c923aad7207a0d6eae385716b25585328fb51325ec5d",
+    "verified": true
+  },
+  "paired-generations-6.tar.gz": {
+    "bytes": 127072,
+    "sha256": "250269d3e06484602cd4e9df984e7a74f29fc70b3230cce7d1e45c7434e77bba",
+    "verified": true
+  }
+}

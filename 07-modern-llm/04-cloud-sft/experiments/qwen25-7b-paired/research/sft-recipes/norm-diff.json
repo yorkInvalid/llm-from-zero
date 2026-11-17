@@ -1,0 +1,302 @@
+[
+  {
+    "comparison": "Qwen2.5: base -> instruct (SFT and later alignment)",
+    "before": {
+      "model": "Qwen/Qwen2.5-7B",
+      "revision": "d149729398750b98c0af14eb82c78cfe92750796"
+    },
+    "after": {
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+    },
+    "tensors": [
+      {
+        "before": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1090004128,
+            1090011295
+          ],
+          "sha256": "d2d895c5ecdbae1f76fe32b558473d9342c92575109f3fdca7cbd331212671e2"
+        },
+        "after": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1090004128,
+            1090011295
+          ],
+          "sha256": "a4d57debc4b3d47a50b1f0ddc44960b2b20f160a7d47d1d1fcff211e6efb5eaa"
+        },
+        "changed": 4,
+        "elements": 3584,
+        "max_abs_delta": 0.001953125
+      },
+      {
+        "before": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1497383072,
+            1497390239
+          ],
+          "sha256": "4b97160c68bec9f85df215ec9274c1478fa60e2842f53ee646a3cebf583b8566"
+        },
+        "after": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1497383072,
+            1497390239
+          ],
+          "sha256": "262f917f0d3e66935247f2dfbf58b6a79c6ae51aaeebed5f02c63c3887369de0"
+        },
+        "changed": 92,
+        "elements": 3584,
+        "max_abs_delta": 0.001953125
+      }
+    ]
+  },
+  {
+    "comparison": "DeepSeek: Qwen2.5-Math-7B -> R1-Distill-Qwen-7B (SFT)",
+    "before": {
+      "model": "Qwen/Qwen2.5-Math-7B",
+      "revision": "b101308fe89651ea5ce025f25317fea6fc07e96e"
+    },
+    "after": {
+      "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+      "revision": "916b56a44061fd5cd7d6a8fb632557ed4f724f60"
+    },
+    "tensors": [
+      {
+        "before": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1090004128,
+            1090011295
+          ],
+          "sha256": "1bf63078a72b146b02dfb8c2bef12bfaf700ad46e41b7b15135673f6f6a26419"
+        },
+        "after": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-000002.safetensors",
+          "byte_range_inclusive": [
+            1556118898,
+            1556126065
+          ],
+          "sha256": "5c7a6cb6a59deb55da1f98a3a9c0d4fbbd41fef15463fb7e7bc7822fd9c4426d"
+        },
+        "changed": 3584,
+        "elements": 3584,
+        "max_abs_delta": 0.03125
+      },
+      {
+        "before": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1497383072,
+            1497390239
+          ],
+          "sha256": "09b997810d3ceef3a2c46011b43217ce9ec4e0ed69eb9f93c6f1c4b22adb55d3"
+        },
+        "after": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            3584
+          ],
+          "shard": "model-00001-of-000002.safetensors",
+          "byte_range_inclusive": [
+            1556126066,
+            1556133233
+          ],
+          "sha256": "281e1c9d07c8fa767e7c0284a55c0634713d5dcb74a134154a08bbb04d346573"
+        },
+        "changed": 3181,
+        "elements": 3584,
+        "max_abs_delta": 0.03125
+      }
+    ]
+  },
+  {
+    "comparison": "MiMo: 7B-Base -> 7B-SFT (original, not SFT-0525)",
+    "before": {
+      "model": "XiaomiMiMo/MiMo-7B-Base",
+      "revision": "d892dcc601b8a242e7b3e7d3bb9f55abbe72c0ad"
+    },
+    "after": {
+      "model": "XiaomiMiMo/MiMo-7B-SFT",
+      "revision": "0a9f1180d99e686ce56b75fee637db62407ceb1b"
+    },
+    "tensors": [
+      {
+        "before": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1242573328,
+            1242581519
+          ],
+          "sha256": "92cdb15f35396ae8a575ad2399761d86554a24df41ad1c2f94202a676cbc01d6"
+        },
+        "after": {
+          "key": "model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1242573328,
+            1242581519
+          ],
+          "sha256": "e990081ff1c009dcd5a15fcbc5e8d174f415bd577c4e96bf89231f59351ca27c"
+        },
+        "changed": 3939,
+        "elements": 4096,
+        "max_abs_delta": 0.125
+      },
+      {
+        "before": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1513114128,
+            1513122319
+          ],
+          "sha256": "eeb712d670eb5bca638992af289a68924d3385a0b3d9021958f639c1409aa55f"
+        },
+        "after": {
+          "key": "model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00001-of-00004.safetensors",
+          "byte_range_inclusive": [
+            1513114128,
+            1513122319
+          ],
+          "sha256": "daaecbd219999dfc7846ae3b58debc2e805323ba7bd7ee67377698091772c06e"
+        },
+        "changed": 3875,
+        "elements": 4096,
+        "max_abs_delta": 0.00830078125
+      }
+    ]
+  },
+  {
+    "comparison": "MiMo: Qwen3.5-9B -> MiMo-V2.6-Distill-Qwen-9B (SFT)",
+    "before": {
+      "model": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "after": {
+      "model": "XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B",
+      "revision": "1f09ddcc1a0ea45751ae0dfe2af20d533168c46f"
+    },
+    "tensors": [
+      {
+        "before": {
+          "key": "model.language_model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model.safetensors-00004-of-00004.safetensors",
+          "byte_range_inclusive": [
+            92896,
+            101087
+          ],
+          "sha256": "7d9dae62cc87d982dc1fa1b476eb3ee105ea096e663d4c2e749a0723f344301a"
+        },
+        "after": {
+          "key": "model.language_model.layers.0.input_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00004-of-00004.safetensors",
+          "byte_range_inclusive": [
+            76984,
+            85175
+          ],
+          "sha256": "110684a88f273829a3161c95d37f4bc673af18f6f50a1e71502b928387b0e100"
+        },
+        "changed": 3787,
+        "elements": 4096,
+        "max_abs_delta": 0.00390625
+      },
+      {
+        "before": {
+          "key": "model.language_model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model.safetensors-00004-of-00004.safetensors",
+          "byte_range_inclusive": [
+            67799840,
+            67808031
+          ],
+          "sha256": "83cd56934fc41643b4b4a55a084430ba351c015e5ae112edd1e3753936382d45"
+        },
+        "after": {
+          "key": "model.language_model.layers.0.post_attention_layernorm.weight",
+          "dtype": "BF16",
+          "shape": [
+            4096
+          ],
+          "shard": "model-00004-of-00004.safetensors",
+          "byte_range_inclusive": [
+            67784248,
+            67792439
+          ],
+          "sha256": "4cd4887c8c20cd655e0dea66f268734d4ce840f5a61f4fb8dc1841caba6372a4"
+        },
+        "changed": 3426,
+        "elements": 4096,
+        "max_abs_delta": 0.005859375
+      }
+    ]
+  }
+]

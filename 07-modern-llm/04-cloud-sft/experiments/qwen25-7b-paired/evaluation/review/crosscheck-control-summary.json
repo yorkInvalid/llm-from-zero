@@ -1,0 +1,15 @@
+{
+  "group": "control and shared base, model identities hidden",
+  "sample": "6 from each of S/R in P21–P40/P41–P60 of responses requiring blind judgment; ascending SHA256(PAIR-CROSSCHECK-20261116-v1: + blind_key) in each stratum",
+  "n": 24,
+  "all_three_bits_agree": 23,
+  "differences": [
+    {
+      "key": "P41S_b9058408d5733718",
+      "primary": "010",
+      "secondary": "000",
+      "retained": "010",
+      "reason": "原评把“桥景票”作为一个名称；复评将其视为票种、非权益项目。“摆渡”才是正确结果，两者均判内容错误。"
+    }
+  ]
+}

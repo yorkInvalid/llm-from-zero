@@ -1,0 +1,11 @@
+{
+  "count_core": 60,
+  "count_prompts": 120,
+  "sha256": {
+    "freeze.py": "6d0da9fb4e218b41c81c92ebb89d3ba39895fc4854ff1e473d0c58f5856ab178",
+    "core.tsv": "0dbe99faf54d46e7207a003ccdd6b15580d7b9560e68e7ab3586f780d792fdb2",
+    "items.jsonl": "6fa981d14865899a045a024fbb60c1c94023ac22b63b855a1f2b89605dc017ee",
+    "prompts.jsonl": "69b73299803a7aad9e98891f0efe3d0df62bd9675e7f5e513a337a0f85fbd0b5",
+    "SCORING.md": "4daaab61ec9ce2271d96d91d34194e24ce4eb4fdb3dc471c9ebf653eb51f7fd9"
+  }
+}

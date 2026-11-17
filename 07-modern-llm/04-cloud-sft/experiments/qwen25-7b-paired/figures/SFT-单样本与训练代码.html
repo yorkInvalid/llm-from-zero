@@ -1,0 +1,171 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>一次 SFT 更新：从 C 到梯度</title><style>
+*{box-sizing:border-box}body{max-width:1020px;margin:auto;padding:32px 16px 60px;background:#f4f5ef;color:#163a36;font:17px/1.65 system-ui,sans-serif}h1{font-size:clamp(29px,5vw,46px);line-height:1.2}h2{margin-top:44px}h3{margin:.1em 0}.card,details{background:white;border:1px solid #c6d5cd;border-radius:12px;padding:13px 17px}.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.flow b,summary{color:#12645b}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 ui-monospace,monospace}summary{cursor:pointer;font-weight:650}details{margin:6px 0}.cell{display:inline-block;padding:6px;margin:2px;border-radius:4px;background:#e5ebe8;font:14px monospace}.gold{background:#ffdf97}.small{font-size:14px}a{color:#14685f}.arrow{color:#638279;text-align:center} @media(max-width:680px){.flow{grid-template-columns:1fr}} </style>
+<small>QWEN2.5-7B　/　魔搭 A10　/　双问组 · 第 3 个优化步</small><h1>一道选择题，怎样参与一次权重更新？</h1><a href="#code">跳到图 02：同一步的代码调用 ↓</a><h2>图 01　沿着样本走</h2><section class="flow">
+<div class="card"><b>① 原题与来源答案</b><br>《百家姓》中没有下面哪个姓？<br>A.乌<br>B.巫<br>C.肖<br>D.萧<br>来源解析末句：故本题选C。</div>
+<div class="card"><b>② 清洗、核对、改写</b><br>规范换行、去首尾空白，核对四个选项和来源末句的选项字母。给原题加上“只答所选项的字母。”，把短答目标写为 <b>C</b>。</div>
+<div class="card"><b>③ 模板 → token ID</b><br>加 user / assistant 标记：提示共 <b>41</b> 个 token。训练时拼入正确回答 <b>C = 34</b>，再加原生结束符 <b>151643</b>。合计 <b>43</b> 个。</div>
+</section>
+<details><summary>查看这条真实样本的完整输入、位置和 ID</summary><pre>&lt;|im_start|&gt;user
+《百家姓》中没有下面哪个姓？
+
+A.乌
+
+B.巫
+
+C.肖
+
+D.萧
+
+只答所选项的字母。&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+C&lt;|endoftext|&gt;</pre><p>位置:ID（从 0 开始）；灰色是条件，黄色是计入 loss 的目标。</p><span class="cell ">0:151644</span><span class="cell ">1:872</span><span class="cell ">2:198</span><span class="cell ">3:26940</span><span class="cell ">4:110716</span><span class="cell ">5:101395</span><span class="cell ">6:25067</span><span class="cell ">7:15946</span><span class="cell ">8:80443</span><span class="cell ">9:100431</span><span class="cell ">10:104673</span><span class="cell ">11:101395</span><span class="cell ">12:26850</span><span class="cell ">13:32</span><span class="cell ">14:13</span><span class="cell ">15:100444</span><span class="cell ">16:271</span><span class="cell ">17:33</span><span class="cell ">18:13</span><span class="cell ">19:107153</span><span class="cell ">20:271</span><span class="cell ">21:34</span><span class="cell ">22:13</span><span class="cell ">23:102352</span><span class="cell ">24:271</span><span class="cell ">25:35</span><span class="cell ">26:13</span><span class="cell ">27:104608</span><span class="cell ">28:271</span><span class="cell ">29:91680</span><span class="cell ">30:99590</span><span class="cell ">31:31838</span><span class="cell ">32:109487</span><span class="cell ">33:9370</span><span class="cell ">34:110788</span><span class="cell ">35:1773</span><span class="cell ">36:151645</span><span class="cell ">37:198</span><span class="cell ">38:151644</span><span class="cell ">39:77091</span><span class="cell ">40:198</span><span class="cell gold">41:34</span><span class="cell gold">42:151643</span></details>
+<div class="arrow">↓ 与同一微批的另一条样本一起右侧补齐 ↓</div><section class="flow">
+<div class="card"><b>④ 一次前向，预测两个位置</b><br>输入形状 [2, 53]。28 层因果 Transformer 输出 [2, 53, 3584]。位置 40 看完提示，预测位置 41 的 C；位置 41 看到了正确的 C，预测位置 42 的结束符。因果遮罩挡住未来的答案。</div>
+<div class="card"><b>⑤ 只给回答打分</b><br>提示和补齐位置不直接计分。这个微批取 33 个预测位置，经 lm_head 得到 [33, 152064] 个分数。本题贡献两项：−log P(C｜提示) 与 −log P(结束｜提示,C)。</div>
+<div class="card"><b>⑥ 反传并更新 LoRA</b><br>4 条样本分成 2 个微批。每个微批的交叉熵之和除以整步 468 个监督 token，再反传、累积梯度。AdamW 更新 LoRA 的 A、B 矩阵；原始底座权重冻结。</div>
+</section>
+<p class="card"><b>云端第 3 步实测</b>　1204.5901 ÷ 468 = <b>2.57391</b>（4 条合计的平均 loss）。学习率 6.667e-06，裁剪前梯度范数 0.92049，低于阈值 1。共有 20,185,088 个可训练参数。日志没有保存这条样本单独的概率、loss 或权重改变量。</p>
+<h2 id="code">图 02　沿着实际代码走</h2><p>按顺序展开即可读项目源代码。训练前向直接用已知答案监督，不调用推理时的 model.generate()。</p>
+<details><summary>离线准备　从来源解析提取选项，生成短答　·　build.py:61</summary><pre> 61  def mc(r):
+ 62      if not r[&quot;source_file&quot;].startswith(GROUPS):
+ 63          return []
+ 64      p,answer = r[&#x27;prompt&#x27;],r[&#x27;response&#x27;]
+ 65      if &quot;\n\n&quot; in p:
+ 66          lead, body=p.split(&quot;\n\n&quot;,1)
+ 67          if (len(lead)&lt;115 and not OPTS.search(lead) and
+ 68              re.match(r&#x27;^(?:请(?:从|选|根据|回答|阅读)|在每小题|[一二三]、|[每下]列各题|本题|在下列|选择题|单项选择题|以下各题|下列各题|单选题|对于下述|从下列|请你)&#x27;,lead) and
+ 69              not re.search(r&#x27;[？?]|[《「“]&#x27;,lead) and len(body)&gt;24):
+ 70              p=body.strip()
+ 71      if UNSAFE.search(p+&#x27; &#x27;+answer) or CONFLICT.search(p) or (&#x27;多项选择&#x27; in p) or &#x27;多选题&#x27; in p: return []
+ 72      match=FINAL.search(answer)
+ 73      if not match: return []
+ 74      key=match[1]; rationale=answer[:match.start()].strip()
+ 75      if len(norm(rationale))&lt;12 or not re.search(&#x27;[\u4e00-\u9fff]&#x27;,rationale): return []
+ 76      markers=list(OPTS.finditer(p))
+ 77      if [m[1] for m in markers]!=list(&quot;ABCD&quot;):return []
+ 78      head=p[:markers[0].start()].strip()
+ 79      if len(norm(head))&lt;6: return []
+ 80      if re.search(r&#x27;字形演变|演变过程|观察图|如[左右上下]图|据图|此图|看图|看漫画|图片中|所示|如右|如左|如上图|阴影部|四幅|图画|图内|示意图|加点|画线|划线|下划线|文中|原文|图示|根据图|图片|此图|该图|材料|文章中|前文|本文|篇章|选文|第[①②③④⑤⑥⑦⑧]段|选段|患者|处方|冠心病|心脏病|剪切线&#x27;,head):return []
+ 81      if any(m[1]!=key for m in re.finditer(r&#x27;(?:故本题选|故选|因此答案为)[:： ]*([A-D])(?![A-D、])&#x27;,rationale)):return []
+ 82      options={m[1]:p[m.end():(markers[i+1].start() if i&lt;3 else len(p))].strip()
+ 83               for i,m in enumerate(markers)}
+ 84      if any(not s or &#x27;\n\n&#x27; in s or len(s)&gt;180 for s in options.values()) or len(set(map(norm,options.values())))!=4:return []
+ 85      if any(c not in head for c in re.findall(r&quot;[①②③④⑤⑥⑦⑧]&quot;,options[key])):return []
+ 86      if any(any(t in opt for t in [&#x27;答案：&#x27;,&#x27;答案:&#x27;,&#x27;解析：&#x27;,&#x27;请回答&#x27;,&#x27;故选&#x27;,&#x27;参考答案&#x27;]) for opt in options.values()): return []
+ 87      lp=prompt(p,&quot;给出所选答案，并说明判断依据。&quot;)
+ 88      result=[]
+ 89      for style,short,req in [(&quot;letter&quot;,key,&quot;只答所选项的字母。&quot;),
+ 90                              (&quot;text&quot;,options[key],&quot;只写所选项的原文，不加字母或解释。&quot;),
+ 91                              (&quot;labeled&quot;,key+&quot;. &quot;+options[key],&quot;只给所选项的字母和原文，以“字母. 原文”作答。&quot;)]:
+ 92          if len(short)&gt;=len(answer) or sl(short)+3&gt;=sl(answer):continue
+ 93          if style!=&quot;letter&quot; and (NOOPTIONS.search(options[key]) or len(options[key])&gt;118):continue
+ 94          result.append(Variant(p,r[&#x27;id&#x27;],&#x27;来源单选解析&#x27;,key,&quot;reason&quot;,lp,answer,prompt(p,req),short,&quot;来源答案的明确末尾单选标记；四个有序选项，理由原文保留。&quot;).metrics())
+ 95      return result
+ 96  </pre></details>
+<details><summary>入口　启动本组 train　·　run-pair.sh:15</summary><pre> 15      if [[ &quot;$arm&quot; == paired ]]; then
+ 16          while [[ ! -e data/paired/READY ]]; do sleep 4; done
+ 17      fi
+ 18      if [[ ! -f run/$arm/completed-training.json ]]; then
+ 19          echo &quot;TRAIN START $arm $(date -Is)&quot;
+ 20          &quot;$PY&quot; experiment.py train --arm &quot;$arm&quot; --base &quot;$base&quot; --base-manifest &quot;$manifest&quot; --data data/$arm --out run/$arm
+ 21      fi
+ 22  done</pre></details>
+<details><summary>01　train：校验底座，读 JSONL，调用 encode　·　experiment.py:154</summary><pre>154  def train(args):
+155      out = args.out
+156      out.mkdir(exist_ok=True, parents=True)
+157      data_files = [args.data/&#x27;train.jsonl&#x27;, args.data/&#x27;validation.jsonl&#x27;]
+158      data_hashes = {p.name:sha(p) for p in data_files}
+159      frozen_base = verify_base(args.base, args.base_manifest)
+160      save(out/&#x27;base-verified.json&#x27;, frozen_base)
+161      torch.manual_seed(SEED)
+162      torch.cuda.manual_seed_all(SEED)
+163      base, tok = model_and_tokenizer(args.base)
+164      data, val = (encode(rows(p), tok) for p in data_files)
+165      assert len(data) == 9000 and len(val) == 120</pre></details>
+<details><summary>02　prompt → encode：拼提示、答案、EOS，记下 split　·　experiment.py:65</summary><pre> 65  def prompt(s):
+ 66      return &#x27;&lt;|im_start|&gt;user\n&#x27; + s + &#x27;&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n&#x27;
+ 67  
+ 68  
+ 69  def encode(data, tokenizer):
+ 70      output = []
+ 71      for r in data:
+ 72          pre = tokenizer.encode(prompt(r[&#x27;prompt&#x27;]), add_special_tokens=False)
+ 73          ans = tokenizer.encode(r[&#x27;response&#x27;], add_special_tokens=False) + [EOS]
+ 74          assert len(pre) + len(ans) &lt;= MAX_LEN and len(ans) &gt; 1, r[&#x27;id&#x27;]
+ 75          assert r.get(&#x27;input_tokens&#x27;, len(pre)) == len(pre)
+ 76          assert r.get(&#x27;supervised_tokens&#x27;, len(ans)) == len(ans)
+ 77          output.append(dict(id=r[&#x27;id&#x27;], source=r[&#x27;source&#x27;], ids=pre + ans, split=len(pre), targets=len(ans)))
+ 78      return output</pre></details>
+<details><summary>03　挂 LoRA，挑出可训练参数，创建 AdamW　·　experiment.py:180</summary><pre>180      else:
+181          lora = LoraConfig(r=8, lora_alpha=16, lora_dropout=0., target_modules=[&#x27;q_proj&#x27;, &#x27;k_proj&#x27;, &#x27;v_proj&#x27;,
+182                            &#x27;o_proj&#x27;, &#x27;gate_proj&#x27;, &#x27;up_proj&#x27;, &#x27;down_proj&#x27;], task_type=&#x27;CAUSAL_LM&#x27;)
+183          model = get_peft_model(base, lora)
+184      trainable = [p for p in model.parameters() if p.requires_grad]
+185      for p in trainable:
+186          p.data = p.data.float()
+187      n_trainable = sum(p.numel() for p in trainable)
+188      assert n_trainable == 20185088 and all(&#x27;lora_&#x27; in n for n,p in model.named_parameters() if p.requires_grad)
+189      opt = torch.optim.AdamW(trainable, lr=LR, weight_decay=.01)
+190      scaler = torch.amp.GradScaler(&#x27;cuda&#x27;, init_scale=128.)</pre></details>
+<details><summary>04　batches → 取 4 条，求整步分母并设置学习率　·　experiment.py:235</summary><pre>235      with log.open(&#x27;a&#x27;, buffering=1) as log_file:
+236          for epoch in (1, 2):
+237              for indices in batches(data, epoch):
+238                  step += 1
+239                  if step &lt;= last:
+240                      continue
+241                  start = time.perf_counter()
+242                  records = [data[j] for j in indices]
+243                  total = sum(r[&#x27;targets&#x27;] for r in records)
+244                  lr = LR*min(step/WARMUP, 1.)
+245                  for group in opt.param_groups:
+246                      group[&#x27;lr&#x27;] = lr
+247                  for retry in range(8):
+248                      opt.zero_grad(set_to_none=True)
+249                      batch_nll = 0.
+250                      for i in range(0, len(records), MICRO):
+251                          micro = records[i:i+MICRO]</pre></details>
+<details><summary>05　active_logits：右补齐、因果前向、错位取监督位置　·　experiment.py:93</summary><pre> 93  def active_logits(model, group, pad):
+ 94      width = max(len(r[&#x27;ids&#x27;]) for r in group)
+ 95      inputs = torch.tensor([r[&#x27;ids&#x27;] + [pad] * (width-len(r[&#x27;ids&#x27;])) for r in group], device=&#x27;cuda&#x27;)
+ 96      idx = torch.arange(width, device=&#x27;cuda&#x27;).unsqueeze(0)
+ 97      ends = torch.tensor([len(r[&#x27;ids&#x27;]) for r in group], device=&#x27;cuda&#x27;).unsqueeze(1)
+ 98      starts = torch.tensor([r[&#x27;split&#x27;] for r in group], device=&#x27;cuda&#x27;).unsqueeze(1)
+ 99      mask = idx &lt; ends
+100      target_mask = ((idx &gt;= starts) &amp; mask)[:, 1:]
+101      network = model.get_base_model()
+102      hidden = network.model(input_ids=inputs, attention_mask=mask.long(), use_cache=False).last_hidden_state
+103      target_values = inputs[:, 1:][target_mask]
+104      return network.lm_head(hidden[:, :-1][target_mask]).float(), target_values</pre></details>
+<details><summary>06　交叉熵 → backward → 裁剪梯度 → optimizer step　·　experiment.py:250</summary><pre>250                      for i in range(0, len(records), MICRO):
+251                          micro = records[i:i+MICRO]
+252                          with torch.autocast(&#x27;cuda&#x27;, dtype=torch.float16):
+253                              logits, targets = active_logits(model, micro, tok.pad_token_id)
+254                              loss_sum = F.cross_entropy(logits, targets, reduction=&#x27;sum&#x27;)
+255                          scaler.scale(loss_sum/total).backward()
+256                          batch_nll += loss_sum.detach().item()
+257                          del logits, targets, loss_sum
+258                      scaler.unscale_(opt)
+259                      grad = torch.nn.utils.clip_grad_norm_(trainable, 1.)
+260                      if not math.isfinite(batch_nll):
+261                          raise FloatingPointError(f&#x27;nonfinite loss on {step}&#x27;)
+262                      scale = scaler.get_scale()
+263                      scaler.step(opt)
+264                      scaler.update()
+265                      if scaler.get_scale() &gt;= scale:
+266                          break</pre></details>
+<details><summary>07　写更新日志，到四分之一轮再验证、保存　·　experiment.py:269</summary><pre>269                  torch.cuda.synchronize()
+270                  elapsed += time.perf_counter()-start
+271                  entry = dict(step=step, epoch=epoch, arm=args.arm, nonpad_input_tokens=sum(r[&#x27;split&#x27;] for r in records), nonpad_total_tokens=sum(len(r[&#x27;ids&#x27;]) for r in records), ids=[r[&#x27;id&#x27;] for r in records], targets=total, nll_sum=batch_nll,
+272                               loss=batch_nll/total, lr=lr, gradient_norm=float(grad), amp_retries=retry, train_seconds=elapsed)
+273                  log_file.write(json.dumps(entry, ensure_ascii=False)+&#x27;\n&#x27;)
+274                  if step in (1, 5) or step%100 == 0:
+275                      print(&#x27;UPDATE&#x27;, step, round(elapsed, 1), round(batch_nll/total, 5), flush=True)
+276                  if step in STAGES:
+277                      name = STAGES[step]
+278                      stats = validate(model, val, tok.pad_token_id)
+279                      save(out/f&#x27;validation-{name}.json&#x27;, stats)
+280                      checkpoint(model, opt, scaler, out/name, dict(step=step, name=name, train_seconds=elapsed,
+281                                 total_examples=(step//563)*2250, data_hashes=data_hashes, validation_loss=stats[&#x27;loss&#x27;],
+282                                 peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30,
+283                                 peak_reserved_gib=torch.cuda.max_memory_reserved()/2**30))</pre></details>
+<p class="small">来源：冻结训练集、官方分词器、云端 run/paired/updates.jsonl 和 cloud/experiment.py。张量形状由真实批次长度与代码推得。</p></html>

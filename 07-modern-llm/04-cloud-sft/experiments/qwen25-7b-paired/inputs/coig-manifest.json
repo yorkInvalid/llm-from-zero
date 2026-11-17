@@ -1,0 +1,373 @@
+{
+  "repo": "https://www.modelscope.cn/datasets/m-a-p/COIG-CQIA",
+  "revision": "9c816ffadbd53ef0149b9b1f7d850cddb5d6ebd4",
+  "seed": 20261116,
+  "raw_files": {
+    "chinese_traditional/chengyu.jsonl": {
+      "sha256": "8a384774dd7dff708d60a38a7446581f44b929b3c9d943a3422a88bbff2f9058",
+      "lines": 111,
+      "git_blob": "697ed8dab587699e8ce0305bd3b3403dd2437f1a"
+    },
+    "chinese_traditional/poem.jsonl": {
+      "sha256": "6166cb3976390bb6a409e59a2b215e59da75dcd368856b146b959149752f137a",
+      "lines": 47,
+      "git_blob": "e29b5c3accdd4874b13dd2b341ba1f54572ff2ae"
+    },
+    "chinese_traditional/trad-multi-choice-100-2.jsonl": {
+      "sha256": "eee57ad5c2623c086280bc9a3e460fcaa394f2344ea5a9998ae71c2998392089",
+      "lines": 99,
+      "git_blob": "5cb243014c1cdf06984aefb593be92377dd21b5f"
+    },
+    "chinese_traditional/trad-multi-choice-100.jsonl": {
+      "sha256": "3ef9f76061c159b407551ed7b5ed93d0a0253b4820d0c170cfff5fbccc462062",
+      "lines": 95,
+      "git_blob": "a804fea4165aac4804d0d43e104193050cfbc389"
+    },
+    "chinese_traditional/trad-multi-choice-40.jsonl": {
+      "sha256": "ff51c438919a7c5a2561cfebfe54ca67ae0cbb7bdb142d057b35e62ff6716cae",
+      "lines": 38,
+      "git_blob": "4728d048bb2d74182b335f79e53107f042e9cd93"
+    },
+    "chinese_traditional/translate_classical_chinese.jsonl": {
+      "sha256": "3c4bac0833cb3cc782e253b755a35662d7011a1a58a2376d0276b492d2e2c7d6",
+      "lines": 721,
+      "git_blob": "d0d75e92438d3f1833c9620cd4e3fa0427a6d7cf"
+    },
+    "coig_pc/coig_pc_core_sample.jsonl": {
+      "sha256": "3b7bfe84d4c70f5d1ffcfb6396dcf7c5e23640cc177a9e6b469778c9b16e19a0",
+      "lines": 3000,
+      "git_blob": "3105152b9d2f70f5020b229593dabb5a14f30b66"
+    },
+    "douban/book_introduce.jsonl": {
+      "sha256": "3fb7401db5a8d21423ce8befabfd22ed67e9d43d73d88504f20fe471bf463e0b",
+      "lines": 585,
+      "git_blob": "31f39fb5e1cc35f8b78895483eaf9fe2e7f592fe"
+    },
+    "douban/book_reviews.jsonl": {
+      "sha256": "c72d6b7c88f233846aeda9576dc0c1a9d7cc1e0b5e4e5626e7fa4408c7352648",
+      "lines": 62,
+      "git_blob": "13189b1ec546e7c2a1a034adcfe9964cdbce9c01"
+    },
+    "douban/movie_anime_synopsis_more_prompt.jsonl": {
+      "sha256": "dda65c7f1c87ab2971a4c2408070a83aed8cfe5ba098b6bae8e6e9da7300330e",
+      "lines": 495,
+      "git_blob": "129a025bfa3b5b94187b55751c34a3db15508969"
+    },
+    "douban/movie_documentary_synopsis_more_prompt.jsonl": {
+      "sha256": "85fdc45c7da892b41bf5a6638464ca2e0d5ef53d1d0a2b4be056033755cd43c2",
+      "lines": 112,
+      "git_blob": "23587141a5608a13094e1c64cf147d4d8bed9afe"
+    },
+    "douban/movie_recommendation.jsonl": {
+      "sha256": "a0b092296af1c6e4c9a10a51d40ab5264d7bc61c51d6b9c4982654a6252f38db",
+      "lines": 38,
+      "git_blob": "58ebca83256226f953615ee6d16c539e10c1ab08"
+    },
+    "douban/movie_recommendation2.jsonl": {
+      "sha256": "aac3fd557847e74612c1b301a249b8e6f339e8cf6dcc5f27e3c7b589c01545c6",
+      "lines": 10,
+      "git_blob": "fb607a565a55def2648065dc0bb803e18dad8542"
+    },
+    "douban/movie_reviews.jsonl": {
+      "sha256": "60ba054a3973e9301316efaa1525b27202e5dc8ef5c6878acc9813c067c13336",
+      "lines": 144,
+      "git_blob": "74c65a82160d0b39ea581c380339cec098b5679d"
+    },
+    "douban/movie_synopsis_more_prompt.jsonl": {
+      "sha256": "65ceb7d59be05dd8c948eca77c770ea369c74a2de3c46e45a510539aec90f67a",
+      "lines": 496,
+      "git_blob": "ec477f3f2a596c503c8bcc1d46f058c5e593c854"
+    },
+    "douban/tv_anime_synopsis_more_prompt.jsonl": {
+      "sha256": "8804828b73310b93daea9fd35e4fd817901240c60e3f043ae3e31fc8eb1d023e",
+      "lines": 495,
+      "git_blob": "a1f8b9417b674c162bb302c5e543d6ed3e5bb61d"
+    },
+    "douban/tv_documentary_synopsis_more_prompt.jsonl": {
+      "sha256": "19c59f6912f9b2d4ae103650d3d9f8b100ae639977d4bac2e5950be881aa8c5b",
+      "lines": 40,
+      "git_blob": "aa2ae4806d004baab1ed4dbb64c5ac8e42e4338d"
+    },
+    "douban/tv_recommendation.jsonl": {
+      "sha256": "a5b0bdaf926b6c136a44c18cf473b4a9f1d55a233f3d116190367114fce4e167",
+      "lines": 14,
+      "git_blob": "64883bda9468df564cf6cdd8c59aeda16c21810d"
+    },
+    "douban/tv_recommendation2.jsonl": {
+      "sha256": "b49e89a4c4e4306cc2320f0a58f3616ab9ee097f5d50d75ac004a1febf1ac12f",
+      "lines": 7,
+      "git_blob": "32975f0fc315833dfebc8b28bfeb705814203032"
+    },
+    "douban/tv_reviews.jsonl": {
+      "sha256": "db5cb354a8db1447d54ce2878b5b114e52b3fd02707e4b1c622d4dad6f52bc57",
+      "lines": 103,
+      "git_blob": "d4430c77c47d6010b0372d2452221210240221ae"
+    },
+    "douban/tv_synopsis_more_prompt.jsonl": {
+      "sha256": "2a7bdd5465b8eb66dd885fc2116e11086fb883cc6e7ae982220e23ea38ca847e",
+      "lines": 485,
+      "git_blob": "136de36f9d6427af1de0a5b79ed0ddaa99d34141"
+    },
+    "exam/coig_exam_sampled_clean_v3.jsonl": {
+      "sha256": "efce6849f7a55d1bd21e290229c0a6446105077b08450d5076d50ab41e058e19",
+      "lines": 1964,
+      "git_blob": "45c190213257ae8394442647cc1e29506897bfe1"
+    },
+    "exam/kaoyan.jsonl": {
+      "sha256": "9a4dd4b79199ca8b5486dd3a0655cbd522b500e6811b6e0dab2714cfb9d9a401",
+      "lines": 377,
+      "git_blob": "4ba1585da3ae7de5ac35b204ba12a966979bc9d5"
+    },
+    "exam/law_gee_exam_clean_v2.jsonl": {
+      "sha256": "337b32fe2958c24842d70944addb2fb4d799c2c90fc431c69bda0253e260f54a",
+      "lines": 2515,
+      "git_blob": "ad43c310f89dae34dd15899d9ea383e37afc4b4e"
+    },
+    "finance/finance_coig_pc.jsonl": {
+      "sha256": "1774644143eb8896e8a85b698a1a825a357c513e645ebd4dc5f3070b930dc328",
+      "lines": 600,
+      "git_blob": "40779646e785a1aa9cbfeb323e19acaa0f3826b3"
+    },
+    "finance/mba_baike.jsonl": {
+      "sha256": "0c609b053610df4b3506dc1fe9efdd69b2561eafd0365d24302634ade0d11e1d",
+      "lines": 10688,
+      "git_blob": "c23e6361be1a9007d1d1b3cf0b93f92c8d9c81ef"
+    },
+    "logi_qa/logi-qa.jsonl": {
+      "sha256": "78114b4a60fcf7cd5a6bfc068d054dbf584d5c4cb032a4123ceb4b27b191556b",
+      "lines": 421,
+      "git_blob": "660e07504e7a9b8753b7229a268cf0dd6b5125c0"
+    },
+    "ruozhiba/ruozhiba_ruozhiba.jsonl": {
+      "sha256": "40cf9a69ba802d5d19064270bd57993687051613d9b5f52ad62d6f410ef78487",
+      "lines": 240,
+      "git_blob": "0c00fba932dbcf4f5be0cb03cae14f2e2cb01c2f"
+    },
+    "segmentfault/segmentfault_upvote5_clean.jsonl": {
+      "sha256": "c0d7a67e341902602bd09cdc7e46d76c0b4c455f7332838d99fb4e0f0952de8f",
+      "lines": 458,
+      "git_blob": "6a3c4013f76185da3474125bfb76209038688d30"
+    },
+    "wiki/10why_final.jsonl": {
+      "sha256": "e72938fdeba6409103e7dc3dae49af38db7828a13873f0cff54d941d231003ac",
+      "lines": 196,
+      "git_blob": "dfb85c7d949cdca8e84e25d7764f86f12c64c03e"
+    },
+    "wiki/51zyzy.jsonl": {
+      "sha256": "0b937688391dcf81b7c1ceb5fe2b32c78b18222735c84829c14246c692f7b458",
+      "lines": 120,
+      "git_blob": "8d44a53974c0d4d6dc6788f502fe39bec5d51e4d"
+    },
+    "wiki/agriculture.jsonl": {
+      "sha256": "76487bc3674dbbd9c7798504b0c1aac43b2663b3807f05c254a5593069f3a9d7",
+      "lines": 408,
+      "git_blob": "92ad0b78cec85012cc671c672ac9886a09bcfeb9"
+    },
+    "wiki/baobao.jsonl": {
+      "sha256": "ffb6778f5a7aa4a455269322d77d0dbf43d985d2e0e9886ef1433ced1b5f5a86",
+      "lines": 64,
+      "git_blob": "7fc1f5346a9be2fa53fc4d0a89b19a2055e7df2c"
+    },
+    "wiki/bkmy_symptom.jsonl": {
+      "sha256": "d634e0a36dded0c0d6d78e06bfc2e3ca4bb9fd456c51e000df5a8ffc3cd4458f",
+      "lines": 668,
+      "git_blob": "3cb68cde61d6025482e81b4fdbcfe30a9987430c"
+    },
+    "wiki/digital_wiki.jsonl": {
+      "sha256": "d7e1ffa7c8cdb61b724cce23f6aa24184af3067c6165282dde43430913c5e168",
+      "lines": 158,
+      "git_blob": "23397c3e2e67ec049bc01d2a9ba3e3870cb9b539"
+    },
+    "wiki/zgbk.jsonl": {
+      "sha256": "d1e3dac5eeb90541dbe39a20629eb2e5f7315f19796da7bba308b92e905591ed",
+      "lines": 1706,
+      "git_blob": "6365d211c34b5db461ee4b98fb1e477d72fd628e"
+    },
+    "xhs/xhs.jsonl": {
+      "sha256": "2dec66a37209974ae61cc14294d49fb5aef0fd6886a360f9a8563aa7f347f62b",
+      "lines": 1508,
+      "git_blob": "bd7ce9af0b250e8df91d44db10d484157eacd279"
+    },
+    "zhihu/zhihu_expansion.jsonl": {
+      "sha256": "3c3ae8c9c7952e89d29ea86695c91c1cff93cbcaa4e8a887dea9e2fe78b5f44c",
+      "lines": 171,
+      "git_blob": "037e1a3a3290ac2d21fd9a7963e850b5d247dc58"
+    },
+    "zhihu/zhihu_score8.0-8.5_clean_v3.jsonl": {
+      "sha256": "2dd9954e8ad41eee9b0c0823938f299472779b0757234a237c56f83d1fac6a86",
+      "lines": 1481,
+      "git_blob": "d753bf8762dbb09c31295766b3405c9206e3b1ce"
+    },
+    "zhihu/zhihu_score8.5-9.0_clean_v4.jsonl": {
+      "sha256": "86e277a63251c019a11360274e76c0d0b0e76b5b2559d7d7fb1a5273e6b4ffa4",
+      "lines": 1418,
+      "git_blob": "157c5691689d541890ac05230dbf2137f0ffc794"
+    },
+    "zhihu/zhihu_score9.0-10_clean_v10.jsonl": {
+      "sha256": "3263b3c24c94bdb6ad3b9b547594aa1b5c4d3786fa456780c893af28ca86ab20",
+      "lines": 2561,
+      "git_blob": "2d4f1a17743f55a227715152d24a33b21a5e9197"
+    }
+  },
+  "schema": "prompt = instruction + optional double-newline + input; response = output",
+  "normalization": "Trim end whitespace, initial BOM, CRLF and CR. Prompt and >=24-character answer dedup keys use NFKC, casefold, and alphanumerics; short choices may legitimately repeat.",
+  "sampling": "Within each source sort by seeded SHA-256 of file:line ID then interleave sources in rounds. First 120 form validation; next 9000 eligible form training. Max 384 total tokens, no truncation. Remove cross-split prompt 4-gram Jaccard >= 0.70.",
+  "eval_filter": "Exclude normalized identical prompts or >=16 consecutive normalized characters shared by prompt or answer and a benchmark prompt. Prior experiment 800 training + 24 validation prompts excluded by normalized exact match.",
+  "benchmarks": {
+    "questions.json:eval": "2ec9642807cc57e1230f0154ef875937ff1e868a3eea6e7977484625ba680797"
+  },
+  "previous_inputs": {
+    "train.jsonl": "50e5a8f9b915c04743b8e2afbb55d40244e82b804b00ff83e418106b5a5b3c77",
+    "validation.jsonl": "f85b958574e36ecf06315119dfc89f53ec7d62f3dec3e48268b45b99c67d4339"
+  },
+  "eligible_by_source": {
+    "传统文化": 897,
+    "中文文本任务": 2353,
+    "书影音": 2591,
+    "综合考试": 1862,
+    "法律考试": 2256,
+    "财经文本": 219,
+    "经管百科": 1,
+    "逻辑选择": 203,
+    "趣味问答": 135,
+    "开发问答": 174,
+    "科普百科": 596,
+    "健康百科": 155,
+    "生活写作": 819,
+    "社区问答": 2077
+  },
+  "reasons": {
+    "duplicate_or_old_prompt_or_long_answer_duplicate": 1488,
+    "over_384_tokens": 14804,
+    "empty_long_or_reserved": 4286,
+    "no_chinese_in_prompt": 3,
+    "validation_near_duplicate": 104
+  },
+  "source_rows_examined": 34919,
+  "tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+  "native_eos": 151643,
+  "file_sha256": {
+    "train.jsonl": "e314fe11f0a578009e67809ec7d67e3c72484756a25e6df50825eba8f41a279e",
+    "validation.jsonl": "4647e3ff0315dbedd17495fa7bf3ff6bdf754c7ecf228d97d096e6c33d24a44b"
+  },
+  "train": {
+    "rows": 9000,
+    "sources": {
+      "中文文本任务": 1195,
+      "书影音": 1093,
+      "传统文化": 888,
+      "健康百科": 146,
+      "开发问答": 165,
+      "法律考试": 1196,
+      "生活写作": 810,
+      "社区问答": 1196,
+      "科普百科": 587,
+      "综合考试": 1196,
+      "财经文本": 208,
+      "趣味问答": 126,
+      "逻辑选择": 194
+    },
+    "tokens": {
+      "input_tokens": {
+        "total": 634005,
+        "min": 9,
+        "median": 54.0,
+        "p90": 137,
+        "max": 373,
+        "mean": 70.44
+      },
+      "supervised_tokens": {
+        "total": 1353439,
+        "min": 2,
+        "median": 140.0,
+        "p90": 295,
+        "max": 370,
+        "mean": 150.38
+      },
+      "total_tokens": {
+        "total": 1987444,
+        "min": 23,
+        "median": 227.0,
+        "p90": 342,
+        "max": 384,
+        "mean": 220.83
+      }
+    },
+    "supervised_tokens_by_source": {
+      "中文文本任务": 36246,
+      "书影音": 222162,
+      "传统文化": 64556,
+      "健康百科": 44556,
+      "开发问答": 19601,
+      "法律考试": 127731,
+      "生活写作": 211954,
+      "社区问答": 317496,
+      "科普百科": 144728,
+      "综合考试": 119738,
+      "财经文本": 4405,
+      "趣味问答": 18738,
+      "逻辑选择": 21528
+    }
+  },
+  "validation": {
+    "rows": 120,
+    "sources": {
+      "中文文本任务": 10,
+      "书影音": 10,
+      "传统文化": 9,
+      "健康百科": 9,
+      "开发问答": 9,
+      "法律考试": 9,
+      "生活写作": 9,
+      "社区问答": 9,
+      "科普百科": 9,
+      "经管百科": 1,
+      "综合考试": 9,
+      "财经文本": 9,
+      "趣味问答": 9,
+      "逻辑选择": 9
+    },
+    "tokens": {
+      "input_tokens": {
+        "total": 8293,
+        "min": 12,
+        "median": 44.0,
+        "p90": 156,
+        "max": 301,
+        "mean": 69.11
+      },
+      "supervised_tokens": {
+        "total": 18362,
+        "min": 2,
+        "median": 136.0,
+        "p90": 292,
+        "max": 372,
+        "mean": 153.02
+      },
+      "total_tokens": {
+        "total": 26655,
+        "min": 39,
+        "median": 225.5,
+        "p90": 338,
+        "max": 384,
+        "mean": 222.12
+      }
+    },
+    "supervised_tokens_by_source": {
+      "中文文本任务": 164,
+      "书影音": 2014,
+      "传统文化": 630,
+      "健康百科": 2620,
+      "开发问答": 1047,
+      "法律考试": 971,
+      "生活写作": 2333,
+      "社区问答": 2191,
+      "科普百科": 2338,
+      "经管百科": 328,
+      "综合考试": 858,
+      "财经文本": 243,
+      "趣味问答": 1699,
+      "逻辑选择": 926
+    }
+  }
+}
