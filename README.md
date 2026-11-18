@@ -1,5 +1,9 @@
 # LLM 从零学起：AI 通用能力与面试准备
 
+**新课：[09 · RL：奖励怎样改变回答概率](09-rl-basics/lesson.ipynb)**：本地 CPU 逐格观察奖励、优势、loss、梯度和参数更新。
+
+**新课：[08 · Tools、Function Calling 和 MCP](08-tools-mcp/README.md)**：用 Qwen3-0.6B 查一次库存，在本地 Jupyter 观察模型、宿主和工具各做了什么，附魔搭运行脚本。
+
 **第四课配置更新：Qwen3-4B，单张 A800 80GB，LoRA / 全参数 SFT；已完成 A800 上 2 步 LoRA 试跑、60 步训练、保存重载和测试集评估。旧 0.6B MPS 记录为历史结果。**
 
 **2026-11-14 当前模型学习入口：[07 · 第四课：AutoDL 云 GPU SFT](07-modern-llm/04-cloud-sft/lesson.ipynb)。** 已制作回答 loss mask、全参数/LoRA 训练、评估与恢复课件，以及 [AutoDL 操作指南](07-modern-llm/04-cloud-sft/CLOUD_RUN.md)。Qwen3-4B 已在 A800 完成 LoRA 60 步训练及重载评估，实测结果写入课件；费用以 AutoDL 账单为准。
