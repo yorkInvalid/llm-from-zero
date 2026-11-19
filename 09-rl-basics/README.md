@@ -7,3 +7,5 @@
 固定种子下，一次更新让 P(4) 从 0.4 变为约 0.4337；另一次从初值开始的 60 步训练达到约 0.9536。它不处理新题，不代表获得了通用算术能力，也不是完整的大模型 RL、PPO 或 GRPO 实现。
 
 前置：已经理解 SFT 的 loss、backward 和 step。数学依据见 [策略梯度与基准](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html)。
+
+下一课：[逐 token 的 RL](../10-rl-tokens/lesson.ipynb)，将一个答案扩展成包含结束符的完整序列。

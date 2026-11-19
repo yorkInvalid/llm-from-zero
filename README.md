@@ -1,5 +1,7 @@
 # LLM 从零学起：AI 通用能力与面试准备
 
+**新课：[10 · RL：一句话的奖励怎样更新每个 token](10-rl-tokens/lesson.ipynb)**：逐 token 条件概率、结束符、梯度累加，附真实 Qwen 输出对照。
+
 **新课：[09 · RL：奖励怎样改变回答概率](09-rl-basics/lesson.ipynb)**：本地 CPU 逐格观察奖励、优势、loss、梯度和参数更新。
 
 **新课：[08 · Tools、Function Calling 和 MCP](08-tools-mcp/README.md)**：用 Qwen3-0.6B 查一次库存，在本地 Jupyter 观察模型、宿主和工具各做了什么，附魔搭运行脚本。
